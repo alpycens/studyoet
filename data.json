@@ -10,7 +10,12 @@
         {
           "id": "a",
           "name": "Part A",
-          "videos": [],
+          "videos": [
+            {
+              "title": "Crucial Vocabulary 1 , Medical symptoms",
+              "url": "https://www.youtube.com/watch?v=p3QtK4ZJTi8&list=PLzJPRLgabI2XTCCI8_-TKghm68wgXXe4d"
+            }
+          ],
           "docs": []
         },
         {
