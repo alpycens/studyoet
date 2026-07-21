@@ -1,0 +1,692 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OET Study Hub</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Public+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#F4F7F6;
+  --paper:#FFFFFF;
+  --ink:#132126;
+  --ink-soft:#4A5C63;
+  --line:#DCE5E3;
+  --header:#0F2E33;
+  --header-ink:#EAF4F2;
+  --radius:14px;
+  --c-listening:#1D6FB8;
+  --c-reading:#1E8A5A;
+  --c-writing:#7A4FBF;
+  --c-speaking:#D66A2E;
+  --c-docs:#3E5560;
+  --font-display:"Bricolage Grotesque",system-ui,sans-serif;
+  --font-body:"Public Sans",system-ui,sans-serif;
+  --font-mono:"IBM Plex Mono",ui-monospace,monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{
+  font-family:var(--font-body);
+  background:var(--bg);
+  color:var(--ink);
+  min-height:100vh;
+  line-height:1.55;
+}
+
+/* ---------- Header ---------- */
+header{
+  background:var(--header);
+  color:var(--header-ink);
+  padding:26px 20px 20px;
+}
+.header-inner{max-width:1080px;margin:0 auto}
+.brand{
+  font-family:var(--font-display);
+  font-weight:800;
+  font-size:clamp(26px,4vw,36px);
+  letter-spacing:-0.5px;
+  line-height:1.1;
+}
+.brand span{color:#7ED4C5}
+.tagline{
+  margin-top:6px;
+  font-size:14px;
+  color:#A7C4BF;
+}
+.progress-wrap{
+  margin-top:16px;
+  display:flex;
+  align-items:center;
+  gap:12px;
+  flex-wrap:wrap;
+}
+.progress-bar{
+  flex:1;
+  min-width:180px;
+  height:8px;
+  background:rgba(255,255,255,.15);
+  border-radius:99px;
+  overflow:hidden;
+}
+.progress-fill{
+  height:100%;
+  width:0%;
+  background:linear-gradient(90deg,#7ED4C5,#3FA893);
+  border-radius:99px;
+  transition:width .4s ease;
+}
+.progress-label{
+  font-family:var(--font-mono);
+  font-size:12px;
+  color:#A7C4BF;
+  white-space:nowrap;
+}
+
+/* ---------- Tabs ---------- */
+nav{
+  background:var(--paper);
+  border-bottom:1px solid var(--line);
+  position:sticky;
+  top:0;
+  z-index:50;
+}
+.tabs{
+  max-width:1080px;
+  margin:0 auto;
+  display:flex;
+  overflow-x:auto;
+  scrollbar-width:none;
+}
+.tabs::-webkit-scrollbar{display:none}
+.tab{
+  appearance:none;
+  border:none;
+  background:none;
+  cursor:pointer;
+  font-family:var(--font-body);
+  font-weight:600;
+  font-size:14px;
+  color:var(--ink-soft);
+  padding:14px 18px 12px;
+  border-bottom:3px solid transparent;
+  white-space:nowrap;
+  transition:color .15s;
+}
+.tab:hover{color:var(--ink)}
+.tab:focus-visible{outline:2px solid var(--ink);outline-offset:-2px}
+.tab.active{color:var(--tab-color);border-bottom-color:var(--tab-color)}
+.tab .count{
+  font-family:var(--font-mono);
+  font-size:11px;
+  margin-left:6px;
+  opacity:.7;
+}
+
+/* ---------- Main ---------- */
+main{max-width:1080px;margin:0 auto;padding:24px 20px 80px}
+.section-head{
+  display:flex;
+  align-items:baseline;
+  justify-content:space-between;
+  gap:12px;
+  flex-wrap:wrap;
+  margin-bottom:18px;
+}
+.section-title{
+  font-family:var(--font-display);
+  font-weight:800;
+  font-size:clamp(22px,3vw,30px);
+  color:var(--sec-color,var(--ink));
+  letter-spacing:-0.4px;
+}
+.section-sub{font-size:14px;color:var(--ink-soft)}
+.section-progress{
+  font-family:var(--font-mono);
+  font-size:12px;
+  color:var(--ink-soft);
+}
+
+/* ---------- Player ---------- */
+.player-box{
+  background:var(--paper);
+  border:1px solid var(--line);
+  border-radius:var(--radius);
+  overflow:hidden;
+  margin-bottom:22px;
+  display:none;
+}
+.player-box.open{display:block}
+.player-ratio{
+  position:relative;
+  width:100%;
+  aspect-ratio:16/9;
+  background:#000;
+}
+.player-ratio iframe{
+  position:absolute;
+  inset:0;
+  width:100%;
+  height:100%;
+  border:0;
+}
+.player-meta{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  padding:12px 16px;
+  flex-wrap:wrap;
+}
+.player-title{font-weight:600;font-size:15px}
+.player-actions{display:flex;gap:8px;flex-wrap:wrap}
+.btn{
+  appearance:none;
+  cursor:pointer;
+  font-family:var(--font-body);
+  font-weight:600;
+  font-size:13px;
+  padding:8px 14px;
+  border-radius:9px;
+  border:1px solid var(--line);
+  background:var(--paper);
+  color:var(--ink);
+  transition:background .15s,border-color .15s;
+}
+.btn:hover{background:var(--bg)}
+.btn:focus-visible{outline:2px solid var(--ink);outline-offset:1px}
+.btn.primary{
+  background:var(--sec-color,var(--ink));
+  border-color:var(--sec-color,var(--ink));
+  color:#fff;
+}
+.btn.primary:hover{filter:brightness(1.08)}
+
+/* ---------- Video list ---------- */
+.video-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(280px,1fr));
+  gap:14px;
+}
+.video-card{
+  background:var(--paper);
+  border:1px solid var(--line);
+  border-radius:var(--radius);
+  overflow:hidden;
+  cursor:pointer;
+  transition:transform .15s,box-shadow .15s,border-color .15s;
+  display:flex;
+  flex-direction:column;
+}
+.video-card:hover{
+  transform:translateY(-2px);
+  box-shadow:0 6px 18px rgba(19,33,38,.08);
+  border-color:var(--sec-color,var(--line));
+}
+.video-card:focus-visible{outline:2px solid var(--sec-color,var(--ink));outline-offset:2px}
+.thumb{
+  position:relative;
+  aspect-ratio:16/9;
+  background:#E6ECEA;
+}
+.thumb img{width:100%;height:100%;object-fit:cover;display:block}
+.thumb .play{
+  position:absolute;
+  inset:0;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+.thumb .play::after{
+  content:"";
+  width:46px;height:46px;
+  background:rgba(15,46,51,.82);
+  border-radius:50%;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='white'%3E%3Cpath d='M8 5v14l11-7z'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;
+  background-position:55% center;
+  background-size:22px;
+  transition:transform .15s;
+}
+.video-card:hover .play::after{transform:scale(1.08)}
+.video-card.watched .thumb::before{
+  content:"IZLENDI";
+  position:absolute;
+  top:8px;left:8px;
+  z-index:2;
+  font-family:var(--font-mono);
+  font-size:10px;
+  letter-spacing:.08em;
+  background:var(--sec-color,#1E8A5A);
+  color:#fff;
+  padding:3px 8px;
+  border-radius:6px;
+}
+.video-info{
+  padding:12px 14px;
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:10px;
+  flex:1;
+}
+.video-title{font-size:14px;font-weight:600;line-height:1.4}
+.watch-toggle{
+  appearance:none;
+  cursor:pointer;
+  flex-shrink:0;
+  width:22px;height:22px;
+  border-radius:7px;
+  border:2px solid var(--line);
+  background:var(--paper);
+  position:relative;
+  transition:background .15s,border-color .15s;
+}
+.watch-toggle:focus-visible{outline:2px solid var(--ink);outline-offset:1px}
+.video-card.watched .watch-toggle{
+  background:var(--sec-color,#1E8A5A);
+  border-color:var(--sec-color,#1E8A5A);
+}
+.video-card.watched .watch-toggle::after{
+  content:"";
+  position:absolute;
+  inset:0;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 6L9 17l-5-5'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;
+  background-position:center;
+  background-size:13px;
+}
+
+/* ---------- Docs ---------- */
+.docs-title{
+  font-family:var(--font-display);
+  font-weight:600;
+  font-size:18px;
+  margin:30px 0 12px;
+  color:var(--sec-color,var(--ink));
+}
+.doc-list{display:grid;gap:8px}
+.doc-item{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  background:var(--paper);
+  border:1px solid var(--line);
+  border-radius:10px;
+  padding:12px 14px;
+  text-decoration:none;
+  color:var(--ink);
+  font-size:14px;
+  font-weight:500;
+  transition:border-color .15s,background .15s;
+}
+.doc-item:hover{border-color:var(--sec-color,var(--ink));background:#FBFDFC}
+.doc-item:focus-visible{outline:2px solid var(--sec-color,var(--ink));outline-offset:1px}
+.doc-icon{
+  flex-shrink:0;
+  width:34px;height:34px;
+  border-radius:8px;
+  background:color-mix(in srgb,var(--sec-color,#3E5560) 12%,white);
+  color:var(--sec-color,#3E5560);
+  display:flex;align-items:center;justify-content:center;
+  font-family:var(--font-mono);
+  font-size:10px;
+  font-weight:500;
+}
+.doc-note{font-size:12px;color:var(--ink-soft);font-weight:400;margin-top:2px}
+
+.empty{
+  background:var(--paper);
+  border:1px dashed var(--line);
+  border-radius:var(--radius);
+  padding:34px 20px;
+  text-align:center;
+  color:var(--ink-soft);
+  font-size:14px;
+}
+
+footer{
+  text-align:center;
+  padding:20px;
+  font-size:12px;
+  color:var(--ink-soft);
+}
+
+@media (prefers-reduced-motion:reduce){
+  *{transition:none !important;animation:none !important}
+  html{scroll-behavior:auto}
+}
+@media (max-width:520px){
+  .video-grid{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-inner">
+    <div class="brand">OET <span>Study Hub</span></div>
+    <div class="tagline">Occupational English Test hazirlik merkezi — video dersler ve kaynaklar</div>
+    <div class="progress-wrap">
+      <div class="progress-bar"><div class="progress-fill" id="totalProgressFill"></div></div>
+      <div class="progress-label" id="totalProgressLabel">0 / 0 video izlendi</div>
+    </div>
+  </div>
+</header>
+
+<nav><div class="tabs" id="tabs"></div></nav>
+
+<main id="main"></main>
+
+<footer>OET Study Hub &middot; GitHub Pages</footer>
+
+<script>
+"use strict";
+
+/* =====================================================================
+   VERI: Videolari ve dokumanlari buradan duzenle.
+   - url: YouTube linkini herhangi bir formatta yapistirabilirsin
+     (youtu.be/..., youtube.com/watch?v=..., embed linki vs.)
+   - docs: title + url (PDF, Google Drive linki, repo icindeki dosya vs.)
+     Repo icine koydugun dosya icin ornek: "docs/writing-guide.pdf"
+   ===================================================================== */
+const APP_DATA = {
+  sections: [
+    {
+      id: "listening",
+      name: "Listening",
+      color: "var(--c-listening)",
+      desc: "Part A, B ve C icin dinleme calismalari",
+      videos: [
+        { title: "OET Listening Ornek Video 1", url: "https://www.youtube.com/watch?v=dQw4w9WgXcQ" },
+        { title: "OET Listening Ornek Video 2", url: "https://youtu.be/dQw4w9WgXcQ" }
+      ],
+      docs: [
+        { title: "Listening Cevap Kagidi (ornek)", url: "#", note: "PDF" }
+      ]
+    },
+    {
+      id: "reading",
+      name: "Reading",
+      color: "var(--c-reading)",
+      desc: "Part A skimming/scanning, Part B-C okuma stratejileri",
+      videos: [
+        { title: "OET Reading Ornek Video", url: "https://www.youtube.com/watch?v=dQw4w9WgXcQ" }
+      ],
+      docs: []
+    },
+    {
+      id: "writing",
+      name: "Writing",
+      color: "var(--c-writing)",
+      desc: "Referral letter yazimi ve degerlendirme kriterleri",
+      videos: [],
+      docs: [
+        { title: "Writing Criteria (ornek)", url: "#", note: "PDF" }
+      ]
+    },
+    {
+      id: "speaking",
+      name: "Speaking",
+      color: "var(--c-speaking)",
+      desc: "Role-play kartlari ve konusma pratigi",
+      videos: [],
+      docs: []
+    }
+  ]
+};
+
+/* ============================ Uygulama ============================ */
+const STORAGE_KEY = "oet_watched_v1";
+
+function loadWatched() {
+  try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || {}; }
+  catch (e) { return {}; }
+}
+function saveWatched(map) {
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(map)); }
+  catch (e) { /* localStorage kapali olabilir */ }
+}
+let watched = loadWatched();
+
+function extractYouTubeId(url) {
+  if (!url) return null;
+  const patterns = [
+    /youtu\.be\/([A-Za-z0-9_-]{6,})/,
+    /[?&]v=([A-Za-z0-9_-]{6,})/,
+    /embed\/([A-Za-z0-9_-]{6,})/,
+    /shorts\/([A-Za-z0-9_-]{6,})/
+  ];
+  for (const p of patterns) {
+    const m = url.match(p);
+    if (m) return m[1];
+  }
+  return null;
+}
+
+let currentSection = APP_DATA.sections[0].id;
+
+function allVideos() {
+  return APP_DATA.sections.flatMap(function (s) { return s.videos; });
+}
+
+function updateTotalProgress() {
+  const vids = allVideos();
+  const total = vids.length;
+  let done = 0;
+  vids.forEach(function (v) {
+    const id = extractYouTubeId(v.url);
+    if (id && watched[id]) done++;
+  });
+  const pct = total ? Math.round((done / total) * 100) : 0;
+  document.getElementById("totalProgressFill").style.width = pct + "%";
+  document.getElementById("totalProgressLabel").textContent = done + " / " + total + " video izlendi";
+}
+
+function renderTabs() {
+  const tabsEl = document.getElementById("tabs");
+  tabsEl.innerHTML = "";
+  APP_DATA.sections.forEach(function (sec) {
+    const btn = document.createElement("button");
+    btn.className = "tab" + (sec.id === currentSection ? " active" : "");
+    btn.style.setProperty("--tab-color", sec.color);
+    btn.setAttribute("role", "tab");
+    btn.setAttribute("aria-selected", sec.id === currentSection ? "true" : "false");
+    const count = document.createElement("span");
+    count.className = "count";
+    count.textContent = String(sec.videos.length);
+    btn.textContent = sec.name;
+    btn.appendChild(count);
+    btn.addEventListener("click", function () {
+      currentSection = sec.id;
+      renderTabs();
+      renderSection();
+    });
+    tabsEl.appendChild(btn);
+  });
+}
+
+function renderSection() {
+  const sec = APP_DATA.sections.find(function (s) { return s.id === currentSection; });
+  const main = document.getElementById("main");
+  main.innerHTML = "";
+  main.style.setProperty("--sec-color", sec.color);
+
+  /* Baslik */
+  const head = document.createElement("div");
+  head.className = "section-head";
+  const titleWrap = document.createElement("div");
+  const title = document.createElement("div");
+  title.className = "section-title";
+  title.textContent = sec.name;
+  const sub = document.createElement("div");
+  sub.className = "section-sub";
+  sub.textContent = sec.desc || "";
+  titleWrap.appendChild(title);
+  titleWrap.appendChild(sub);
+  head.appendChild(titleWrap);
+
+  const secDone = sec.videos.filter(function (v) {
+    const id = extractYouTubeId(v.url);
+    return id && watched[id];
+  }).length;
+  const prog = document.createElement("div");
+  prog.className = "section-progress";
+  prog.textContent = secDone + " / " + sec.videos.length + " izlendi";
+  head.appendChild(prog);
+  main.appendChild(head);
+
+  /* Oynatici */
+  const playerBox = document.createElement("div");
+  playerBox.className = "player-box";
+  playerBox.id = "playerBox";
+  playerBox.innerHTML =
+    '<div class="player-ratio" id="playerRatio"></div>' +
+    '<div class="player-meta">' +
+      '<div class="player-title" id="playerTitle"></div>' +
+      '<div class="player-actions">' +
+        '<button class="btn primary" id="markWatchedBtn">Izlendi isaretle</button>' +
+        '<button class="btn" id="closePlayerBtn">Kapat</button>' +
+      '</div>' +
+    '</div>';
+  main.appendChild(playerBox);
+
+  /* Video listesi */
+  if (sec.videos.length === 0) {
+    const empty = document.createElement("div");
+    empty.className = "empty";
+    empty.textContent = "Bu bolume henuz video eklenmedi. index.html icindeki APP_DATA kismindan ekleyebilirsin.";
+    main.appendChild(empty);
+  } else {
+    const grid = document.createElement("div");
+    grid.className = "video-grid";
+    sec.videos.forEach(function (v) {
+      const vid = extractYouTubeId(v.url);
+      const card = document.createElement("div");
+      card.className = "video-card" + (vid && watched[vid] ? " watched" : "");
+      card.setAttribute("tabindex", "0");
+      card.setAttribute("role", "button");
+      card.setAttribute("aria-label", v.title + " videosunu oynat");
+
+      const thumb = document.createElement("div");
+      thumb.className = "thumb";
+      if (vid) {
+        const img = document.createElement("img");
+        img.loading = "lazy";
+        img.alt = "";
+        img.src = "https://i.ytimg.com/vi/" + vid + "/hqdefault.jpg";
+        thumb.appendChild(img);
+      }
+      const play = document.createElement("div");
+      play.className = "play";
+      thumb.appendChild(play);
+      card.appendChild(thumb);
+
+      const info = document.createElement("div");
+      info.className = "video-info";
+      const t = document.createElement("div");
+      t.className = "video-title";
+      t.textContent = v.title;
+      info.appendChild(t);
+
+      const toggle = document.createElement("button");
+      toggle.className = "watch-toggle";
+      toggle.setAttribute("aria-label", "Izlendi olarak isaretle");
+      toggle.addEventListener("click", function (e) {
+        e.stopPropagation();
+        if (!vid) return;
+        toggleWatched(vid);
+      });
+      info.appendChild(toggle);
+      card.appendChild(info);
+
+      function openThis() { openPlayer(v, vid); }
+      card.addEventListener("click", openThis);
+      card.addEventListener("keydown", function (e) {
+        if (e.key === "Enter" || e.key === " ") { e.preventDefault(); openThis(); }
+      });
+      grid.appendChild(card);
+    });
+    main.appendChild(grid);
+  }
+
+  /* Dokumanlar */
+  if (sec.docs && sec.docs.length > 0) {
+    const dTitle = document.createElement("div");
+    dTitle.className = "docs-title";
+    dTitle.textContent = "Dokumanlar";
+    main.appendChild(dTitle);
+
+    const dList = document.createElement("div");
+    dList.className = "doc-list";
+    sec.docs.forEach(function (d) {
+      const a = document.createElement("a");
+      a.className = "doc-item";
+      a.href = d.url;
+      a.target = "_blank";
+      a.rel = "noopener";
+      const icon = document.createElement("div");
+      icon.className = "doc-icon";
+      icon.textContent = d.note || "DOC";
+      a.appendChild(icon);
+      const txt = document.createElement("div");
+      const tt = document.createElement("div");
+      tt.textContent = d.title;
+      txt.appendChild(tt);
+      a.appendChild(txt);
+      dList.appendChild(a);
+    });
+    main.appendChild(dList);
+  }
+}
+
+let currentVideoId = null;
+
+function openPlayer(video, vid) {
+  if (!vid) return;
+  currentVideoId = vid;
+  const box = document.getElementById("playerBox");
+  const ratio = document.getElementById("playerRatio");
+  ratio.innerHTML = "";
+  const iframe = document.createElement("iframe");
+  iframe.src = "https://www.youtube-nocookie.com/embed/" + vid + "?rel=0";
+  iframe.title = video.title;
+  iframe.allow = "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share";
+  iframe.allowFullscreen = true;
+  ratio.appendChild(iframe);
+  document.getElementById("playerTitle").textContent = video.title;
+  box.classList.add("open");
+
+  document.getElementById("markWatchedBtn").onclick = function () {
+    toggleWatched(vid);
+  };
+  document.getElementById("closePlayerBtn").onclick = function () {
+    box.classList.remove("open");
+    ratio.innerHTML = "";
+    currentVideoId = null;
+  };
+  box.scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+function toggleWatched(vid) {
+  if (watched[vid]) delete watched[vid];
+  else watched[vid] = true;
+  saveWatched(watched);
+  renderSection();
+  updateTotalProgress();
+  /* Oynatici aciksa yeniden ac */
+  if (currentVideoId === vid) {
+    const sec = APP_DATA.sections.find(function (s) { return s.id === currentSection; });
+    const v = sec.videos.find(function (x) { return extractYouTubeId(x.url) === vid; });
+    if (v) openPlayer(v, vid);
+  }
+}
+
+renderTabs();
+renderSection();
+updateTotalProgress();
+</script>
+</body>
+</html>
