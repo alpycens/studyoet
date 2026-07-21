@@ -175,6 +175,40 @@ main{max-width:1080px;margin:0 auto;padding:24px 20px 80px}
   color:var(--ink-soft);
 }
 
+/* ---------- Part secici ---------- */
+.part-pills{
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+  margin-bottom:18px;
+}
+.part-pill{
+  appearance:none;
+  cursor:pointer;
+  font-family:var(--font-body);
+  font-weight:600;
+  font-size:13px;
+  padding:8px 14px;
+  border-radius:99px;
+  border:1.5px solid var(--line);
+  background:var(--paper);
+  color:var(--ink-soft);
+  transition:border-color .15s,color .15s,background .15s;
+}
+.part-pill:hover{border-color:var(--sec-color,var(--ink));color:var(--ink)}
+.part-pill:focus-visible{outline:2px solid var(--sec-color,var(--ink));outline-offset:1px}
+.part-pill.active{
+  background:var(--sec-color,var(--ink));
+  border-color:var(--sec-color,var(--ink));
+  color:#fff;
+}
+.pill-count{
+  font-family:var(--font-mono);
+  font-size:11px;
+  margin-left:7px;
+  opacity:.75;
+}
+
 /* ---------- Player ---------- */
 .player-box{
   background:var(--paper);
@@ -637,6 +671,13 @@ const FALLBACK_DATA = {
     { id: "speaking",  name: "Speaking",  desc: "Role-play kartlari ve konusma pratigi", videos: [], docs: [] }
   ]
 };
+/* Bu bolumler otomatik olarak Part A/B/C alt sekmelerine bolunur */
+const PARTED_SECTIONS = ["listening", "reading"];
+const DEFAULT_PARTS = [
+  { id: "a", name: "Part A" },
+  { id: "b", name: "Part B" },
+  { id: "c", name: "Part C" }
+];
 const SECTION_COLORS = {
   listening: "var(--c-listening)",
   reading: "var(--c-reading)",
@@ -649,6 +690,7 @@ let currentSection = "listening";
 let currentVideoId = null;
 let isAdmin = false;
 let dirty = false;
+const currentPartBySection = {};
 
 /* ---------------- Yardimcilar ---------------- */
 function loadWatched() {
@@ -741,12 +783,28 @@ async function loadData() {
   if (!APP_DATA.sections || !APP_DATA.sections.length) {
     APP_DATA = JSON.parse(JSON.stringify(FALLBACK_DATA));
   }
+  /* Eski data.json'da parts yoksa otomatik ekle (mevcut videolar "Genel"de kalir) */
+  PARTED_SECTIONS.forEach(function (id) {
+    const s = APP_DATA.sections.find(function (x) { return x.id === id; });
+    if (s && !s.parts) {
+      s.parts = DEFAULT_PARTS.map(function (p) {
+        return { id: p.id, name: p.name, videos: [], docs: [] };
+      });
+    }
+  });
   currentSection = APP_DATA.sections[0].id;
+}
+
+/* Bolumun tum videolari (Genel + tum partlar) */
+function sectionAllVideos(sec) {
+  let out = (sec.videos || []).slice();
+  (sec.parts || []).forEach(function (p) { out = out.concat(p.videos || []); });
+  return out;
 }
 
 /* ---------------- Ilerleme ---------------- */
 function allVideos() {
-  return APP_DATA.sections.flatMap(function (s) { return s.videos || []; });
+  return APP_DATA.sections.flatMap(function (s) { return sectionAllVideos(s); });
 }
 
 function updateTotalProgress() {
@@ -774,7 +832,7 @@ function renderTabs() {
     btn.setAttribute("aria-selected", sec.id === currentSection ? "true" : "false");
     const count = document.createElement("span");
     count.className = "count";
-    count.textContent = String((sec.videos || []).length);
+    count.textContent = String(sectionAllVideos(sec).length);
     btn.textContent = sec.name;
     btn.appendChild(count);
     btn.addEventListener("click", function () {
@@ -808,16 +866,61 @@ function renderSection() {
   titleWrap.appendChild(sub);
   head.appendChild(titleWrap);
 
-  const vids = sec.videos || [];
-  const secDone = vids.filter(function (v) {
+  /* Gruplar: parts varsa alt sekmeler olustur */
+  const groups = [];
+  if (sec.parts && sec.parts.length) {
+    if ((sec.videos || []).length || (sec.docs || []).length) {
+      groups.push({ id: "_genel", name: "Genel", obj: sec });
+    }
+    sec.parts.forEach(function (p) {
+      groups.push({ id: p.id, name: p.name, obj: p });
+    });
+  } else {
+    groups.push({ id: "_all", name: sec.name, obj: sec });
+  }
+  let activePartId = currentPartBySection[sec.id];
+  if (!groups.some(function (g) { return g.id === activePartId; })) {
+    activePartId = groups[0].id;
+  }
+  currentPartBySection[sec.id] = activePartId;
+  const group = groups.find(function (g) { return g.id === activePartId; });
+  const vids = group.obj.videos || [];
+
+  const secAll = sectionAllVideos(sec);
+  const secDone = secAll.filter(function (v) {
     const key = mediaKey(v);
     return key && watched[key];
   }).length;
   const prog = document.createElement("div");
   prog.className = "section-progress";
-  prog.textContent = secDone + " / " + vids.length + " izlendi";
+  prog.textContent = secDone + " / " + secAll.length + " izlendi";
   head.appendChild(prog);
   main.appendChild(head);
+
+  /* Part secici */
+  if (groups.length > 1) {
+    const pills = document.createElement("div");
+    pills.className = "part-pills";
+    groups.forEach(function (g) {
+      const b = document.createElement("button");
+      b.className = "part-pill" + (g.id === activePartId ? " active" : "");
+      const done = (g.obj.videos || []).filter(function (v) {
+        const key = mediaKey(v);
+        return key && watched[key];
+      }).length;
+      b.textContent = g.name;
+      const c = document.createElement("span");
+      c.className = "pill-count";
+      c.textContent = done + "/" + (g.obj.videos || []).length;
+      b.appendChild(c);
+      b.addEventListener("click", function () {
+        currentPartBySection[sec.id] = g.id;
+        renderSection();
+      });
+      pills.appendChild(b);
+    });
+    main.appendChild(pills);
+  }
 
   /* Oynatici */
   const playerBox = document.createElement("div");
@@ -838,7 +941,7 @@ function renderSection() {
   const vPanel = document.createElement("div");
   vPanel.className = "admin-panel";
   vPanel.innerHTML =
-    '<h3>Video ekle — ' + sec.name + '</h3>' +
+    '<h3>Video ekle — ' + sec.name + (groups.length > 1 ? ' / ' + group.name : '') + '</h3>' +
     '<div class="form-row">' +
       '<input type="text" id="newVidTitle" placeholder="Video basligi">' +
       '<input type="text" id="newVidUrl" placeholder="YouTube video veya playlist linki">' +
@@ -853,8 +956,8 @@ function renderSection() {
       showToast("Link taninamadi. Video veya playlist linki oldugundan emin ol.");
       return;
     }
-    sec.videos = sec.videos || [];
-    sec.videos.push({ title: titleVal || "Basliksiz video", url: urlVal });
+    group.obj.videos = group.obj.videos || [];
+    group.obj.videos.push({ title: titleVal || "Basliksiz video", url: urlVal });
     setDirty(true);
     renderTabs();
     renderSection();
@@ -865,8 +968,8 @@ function renderSection() {
     const empty = document.createElement("div");
     empty.className = "empty";
     empty.textContent = isAdmin
-      ? "Bu bolum bos. Yukaridaki formdan video ekleyebilirsin."
-      : "Bu bolume henuz video eklenmedi.";
+      ? "Bu " + (groups.length > 1 ? "part" : "bolum") + " bos. Yukaridaki formdan video ekleyebilirsin."
+      : "Bu " + (groups.length > 1 ? "parta" : "bolume") + " henuz video eklenmedi.";
     main.appendChild(empty);
   } else {
     const grid = document.createElement("div");
@@ -928,7 +1031,7 @@ function renderSection() {
       delBtn.addEventListener("click", function (e) {
         e.stopPropagation();
         if (!confirm('"' + v.title + '" silinsin mi?')) return;
-        sec.videos.splice(idx, 1);
+        group.obj.videos.splice(idx, 1);
         setDirty(true);
         renderTabs();
         renderSection();
@@ -947,7 +1050,7 @@ function renderSection() {
   }
 
   /* Dokumanlar */
-  const docs = sec.docs || [];
+  const docs = group.obj.docs || [];
   if (docs.length > 0 || isAdmin) {
     const dTitle = document.createElement("div");
     dTitle.className = "docs-title";
@@ -980,7 +1083,7 @@ function renderSection() {
       del.textContent = "Sil";
       del.addEventListener("click", function () {
         if (!confirm('"' + d.title + '" silinsin mi?')) return;
-        sec.docs.splice(idx, 1);
+        group.obj.docs.splice(idx, 1);
         setDirty(true);
         renderSection();
       });
@@ -994,7 +1097,7 @@ function renderSection() {
   const dPanel = document.createElement("div");
   dPanel.className = "admin-panel";
   dPanel.innerHTML =
-    '<h3>Dokuman ekle — ' + sec.name + '</h3>' +
+    '<h3>Dokuman ekle — ' + sec.name + (groups.length > 1 ? ' / ' + group.name : '') + '</h3>' +
     '<div class="form-row">' +
       '<input type="text" id="newDocTitle" placeholder="Dokuman adi">' +
       '<input type="text" id="newDocUrl" placeholder="Link (PDF, Drive, docs/dosya.pdf ...)">' +
@@ -1007,8 +1110,8 @@ function renderSection() {
     const urlVal = dPanel.querySelector("#newDocUrl").value.trim();
     const noteVal = dPanel.querySelector("#newDocNote").value.trim();
     if (!urlVal) { showToast("Link gerekli."); return; }
-    sec.docs = sec.docs || [];
-    sec.docs.push({ title: titleVal || "Basliksiz dokuman", url: urlVal, note: noteVal || "DOC" });
+    group.obj.docs = group.obj.docs || [];
+    group.obj.docs.push({ title: titleVal || "Basliksiz dokuman", url: urlVal, note: noteVal || "DOC" });
     setDirty(true);
     renderSection();
   });
@@ -1060,7 +1163,7 @@ function toggleWatched(key) {
   updateTotalProgress();
   if (playing) {
     const sec = APP_DATA.sections.find(function (s) { return s.id === currentSection; });
-    const v = (sec.videos || []).find(function (x) { return mediaKey(x) === key; });
+    const v = sectionAllVideos(sec).find(function (x) { return mediaKey(x) === key; });
     if (v) openPlayer(v);
   }
 }
