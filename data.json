@@ -25,7 +25,12 @@
       "id": "speaking",
       "name": "Speaking",
       "desc": "Role-play kartlari ve konusma pratigi",
-      "videos": [],
+      "videos": [
+        {
+          "title": "Veterinary Science",
+          "url": "https://www.youtube.com/watch?v=7Y8C1h1qFzY&list=PLzJPRLgabI2VZBoePjMrfNXxHs-yzWHjR"
+        }
+      ],
       "docs": []
     }
   ]
