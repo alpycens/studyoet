@@ -4,6 +4,17 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>OET Study Hub</title>
+<script>
+(function () {
+  try {
+    var t = localStorage.getItem("oet_theme_v1");
+    if (!t) {
+      t = (window.matchMedia && matchMedia("(prefers-color-scheme: dark)").matches) ? "dark" : "light";
+    }
+    document.documentElement.setAttribute("data-theme", t);
+  } catch (e) {}
+})();
+</script>
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230F2E33'/%3E%3Cpath d='M32 19 C27.5 15.8 21.5 14.5 15 14.5 V45.5 C21.5 45.5 27.5 46.8 32 50 Z' fill='%232FBFAE'/%3E%3Cpath d='M32 19 C36.5 15.8 42.5 14.5 49 14.5 V45.5 C42.5 45.5 36.5 46.8 32 50 Z' fill='%237ED4C5'/%3E%3Cpath d='M32 19 V50' stroke='%230F2E33' stroke-width='2.5' stroke-linecap='round'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -23,9 +34,31 @@
   --c-writing:#7A4FBF;
   --c-speaking:#D66A2E;
   --danger:#C2402A;
+  --paper-hover:#FBFDFC;
+  --danger-tint:#FBEFEC;
+  --mix-base:#FFFFFF;
+  --thumb-bg:#E6ECEA;
   --font-display:"Bricolage Grotesque",system-ui,sans-serif;
   --font-body:"Public Sans",system-ui,sans-serif;
   --font-mono:"IBM Plex Mono",ui-monospace,monospace;
+}
+html[data-theme="dark"]{
+  --bg:#0E191C;
+  --paper:#16262B;
+  --ink:#E7F0EE;
+  --ink-soft:#9DB4AF;
+  --line:#2A3C41;
+  --header:#0B2226;
+  --header-ink:#EAF4F2;
+  --c-listening:#5AA7E8;
+  --c-reading:#43C08A;
+  --c-writing:#AC8BEA;
+  --c-speaking:#EE9057;
+  --danger:#E06A50;
+  --paper-hover:#1C3036;
+  --danger-tint:#3A2822;
+  --mix-base:#16262B;
+  --thumb-bg:#22343A;
 }
 *{box-sizing:border-box;margin:0;padding:0}
 html{scroll-behavior:smooth}
@@ -43,7 +76,26 @@ header{
   color:var(--header-ink);
   padding:26px 20px 20px;
 }
-.header-inner{max-width:1080px;margin:0 auto}
+.header-inner{max-width:1080px;margin:0 auto;position:relative}
+.theme-toggle{
+  position:absolute;
+  top:2px;
+  right:0;
+  appearance:none;
+  cursor:pointer;
+  width:38px;height:38px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  border:1px solid rgba(255,255,255,.28);
+  border-radius:10px;
+  background:transparent;
+  color:var(--header-ink);
+  transition:background .15s,border-color .15s;
+}
+.theme-toggle:hover{background:rgba(255,255,255,.1)}
+.theme-toggle:focus-visible{outline:2px solid #7ED4C5;outline-offset:1px}
+.theme-toggle svg{width:18px;height:18px}
 .brand{
   font-family:var(--font-display);
   font-weight:800;
@@ -176,6 +228,34 @@ main{max-width:1080px;margin:0 auto;padding:24px 20px 80px}
   color:var(--ink-soft);
 }
 
+/* ---------- Arama ---------- */
+.search-wrap{margin-bottom:16px}
+.search-input{
+  width:100%;
+  font-family:var(--font-body);
+  font-size:14px;
+  padding:11px 14px;
+  border:1.5px solid var(--line);
+  border-radius:11px;
+  background:var(--paper);
+  color:var(--ink);
+  transition:border-color .15s;
+}
+.search-input::placeholder{color:var(--ink-soft)}
+.search-input:focus-visible{outline:none;border-color:var(--sec-color,var(--ink))}
+.part-tag{
+  display:inline-block;
+  margin-top:4px;
+  font-family:var(--font-mono);
+  font-size:10px;
+  letter-spacing:.06em;
+  color:var(--sec-color,var(--ink-soft));
+  border:1px solid color-mix(in srgb,var(--sec-color,#3E5560) 35%,var(--mix-base));
+  background:color-mix(in srgb,var(--sec-color,#3E5560) 8%,var(--mix-base));
+  padding:2px 7px;
+  border-radius:6px;
+}
+
 /* ---------- Part secici ---------- */
 .part-pills{
   display:flex;
@@ -277,7 +357,7 @@ main{max-width:1080px;margin:0 auto;padding:24px 20px 80px}
 }
 .btn.ghost-dark:hover{background:rgba(255,255,255,.08)}
 .btn.danger{color:var(--danger);border-color:var(--danger);background:var(--paper)}
-.btn.danger:hover{background:#FBEFEC}
+.btn.danger:hover{background:var(--danger-tint)}
 .btn.small{padding:5px 10px;font-size:12px;border-radius:7px}
 
 /* ---------- Video list ---------- */
@@ -305,7 +385,7 @@ main{max-width:1080px;margin:0 auto;padding:24px 20px 80px}
 .thumb{
   position:relative;
   aspect-ratio:16/9;
-  background:#E6ECEA;
+  background:var(--thumb-bg);
 }
 .thumb img{width:100%;height:100%;object-fit:cover;display:block}
 .thumb.playlist{
@@ -446,13 +526,13 @@ body.admin .card-admin{display:block}
   font-weight:500;
   transition:border-color .15s,background .15s;
 }
-.doc-item:hover{border-color:var(--sec-color,var(--ink));background:#FBFDFC}
+.doc-item:hover{border-color:var(--sec-color,var(--ink));background:var(--paper-hover)}
 .doc-item:focus-visible{outline:2px solid var(--sec-color,var(--ink));outline-offset:1px}
 .doc-icon{
   flex-shrink:0;
   width:34px;height:34px;
   border-radius:8px;
-  background:color-mix(in srgb,var(--sec-color,#3E5560) 12%,white);
+  background:color-mix(in srgb,var(--sec-color,#3E5560) 12%,var(--mix-base));
   color:var(--sec-color,#3E5560);
   display:flex;align-items:center;justify-content:center;
   font-family:var(--font-mono);
@@ -631,6 +711,7 @@ footer button:hover{color:var(--ink)}
 
 <header>
   <div class="header-inner">
+    <button class="theme-toggle" id="themeToggle" aria-label="Aydinlik/karanlik tema degistir"></button>
     <div class="brand">OET <span>Study Hub</span></div>
     <div class="tagline">Occupational English Test hazirlik merkezi — video dersler ve kaynaklar</div>
     <div class="progress-wrap">
@@ -738,6 +819,7 @@ let currentVideoId = null;
 let isAdmin = false;
 let dirty = false;
 const currentPartBySection = {};
+const searchBySection = {};
 
 /* ---------------- Yardimcilar ---------------- */
 function loadWatched() {
@@ -1012,7 +1094,6 @@ function renderSection() {
   }
   currentPartBySection[sec.id] = activePartId;
   const group = groups.find(function (g) { return g.id === activePartId; });
-  const vids = group.obj.videos || [];
 
   const secKeys = sectionKeys(sec);
   const prog = document.createElement("div");
@@ -1021,8 +1102,59 @@ function renderSection() {
   head.appendChild(prog);
   main.appendChild(head);
 
-  /* Part secici */
-  if (groups.length > 1) {
+  /* Arama kutusu */
+  const q = (searchBySection[sec.id] || "").trim().toLowerCase();
+  const searchWrap = document.createElement("div");
+  searchWrap.className = "search-wrap";
+  const searchInput = document.createElement("input");
+  searchInput.type = "search";
+  searchInput.id = "sectionSearchInput";
+  searchInput.className = "search-input";
+  searchInput.placeholder = sec.name + " icinde ara...";
+  searchInput.value = searchBySection[sec.id] || "";
+  searchInput.setAttribute("aria-label", sec.name + " icinde ara");
+  searchInput.addEventListener("input", function () {
+    searchBySection[sec.id] = searchInput.value;
+    renderSection();
+    const el = document.getElementById("sectionSearchInput");
+    if (el) {
+      el.focus();
+      const L = el.value.length;
+      try { el.setSelectionRange(L, L); } catch (e) {}
+    }
+  });
+  searchWrap.appendChild(searchInput);
+  main.appendChild(searchWrap);
+
+  /* Aramada tum partlar taranir; normalde aktif part gosterilir */
+  let videoItems, docItems;
+  if (q) {
+    videoItems = [];
+    docItems = [];
+    groups.forEach(function (g) {
+      const pName = groups.length > 1 ? g.name : null;
+      (g.obj.videos || []).forEach(function (v) {
+        if ((v.title || "").toLowerCase().includes(q)) {
+          videoItems.push({ item: v, owner: g.obj, partName: pName });
+        }
+      });
+      (g.obj.docs || []).forEach(function (d) {
+        if ((d.title || "").toLowerCase().includes(q)) {
+          docItems.push({ item: d, owner: g.obj, partName: pName });
+        }
+      });
+    });
+  } else {
+    videoItems = (group.obj.videos || []).map(function (v) {
+      return { item: v, owner: group.obj, partName: null };
+    });
+    docItems = (group.obj.docs || []).map(function (d) {
+      return { item: d, owner: group.obj, partName: null };
+    });
+  }
+
+  /* Part secici (arama sirasinda gizli) */
+  if (groups.length > 1 && !q) {
     const pills = document.createElement("div");
     pills.className = "part-pills";
     groups.forEach(function (g) {
@@ -1058,9 +1190,10 @@ function renderSection() {
     '</div>';
   main.appendChild(playerBox);
 
-  /* Video ekleme formu (yonetici) */
+  /* Video ekleme formu (yonetici, arama sirasinda gizli) */
   const vPanel = document.createElement("div");
   vPanel.className = "admin-panel";
+  if (q) vPanel.style.display = "none";
   vPanel.innerHTML =
     '<h3>Video ekle — ' + sec.name + (groups.length > 1 ? ' / ' + group.name : '') + '</h3>' +
     '<div class="form-row">' +
@@ -1085,17 +1218,23 @@ function renderSection() {
   });
 
   /* Video listesi */
-  if (vids.length === 0) {
+  if (videoItems.length === 0) {
     const empty = document.createElement("div");
     empty.className = "empty";
-    empty.textContent = isAdmin
-      ? "Bu " + (groups.length > 1 ? "part" : "bolum") + " bos. Yukaridaki formdan video ekleyebilirsin."
-      : "Bu " + (groups.length > 1 ? "parta" : "bolume") + " henuz video eklenmedi.";
+    if (q) {
+      empty.textContent = '"' + searchInput.value.trim() + '" ile eslesen video yok.';
+    } else {
+      empty.textContent = isAdmin
+        ? "Bu " + (groups.length > 1 ? "part" : "bolum") + " bos. Yukaridaki formdan video ekleyebilirsin."
+        : "Bu " + (groups.length > 1 ? "parta" : "bolume") + " henuz video eklenmedi.";
+    }
     main.appendChild(empty);
   } else {
     const grid = document.createElement("div");
     grid.className = "video-grid";
-    vids.forEach(function (v, idx) {
+    videoItems.forEach(function (entry) {
+      const v = entry.item;
+      const owner = entry.owner;
       const vid = extractYouTubeId(v.url);
       const pid = extractPlaylistId(v.url);
       const key = mediaKey(v);
@@ -1127,10 +1266,18 @@ function renderSection() {
 
       const info = document.createElement("div");
       info.className = "video-info";
+      const tWrap = document.createElement("div");
       const t = document.createElement("div");
       t.className = "video-title";
       t.textContent = v.title;
-      info.appendChild(t);
+      tWrap.appendChild(t);
+      if (entry.partName) {
+        const tag = document.createElement("div");
+        tag.className = "part-tag";
+        tag.textContent = entry.partName;
+        tWrap.appendChild(tag);
+      }
+      info.appendChild(tWrap);
 
       const toggle = document.createElement("button");
       toggle.className = "watch-toggle";
@@ -1152,7 +1299,8 @@ function renderSection() {
       delBtn.addEventListener("click", function (e) {
         e.stopPropagation();
         if (!confirm('"' + v.title + '" silinsin mi?')) return;
-        group.obj.videos.splice(idx, 1);
+        const i = owner.videos.indexOf(v);
+        if (i > -1) owner.videos.splice(i, 1);
         setDirty(true);
         renderTabs();
         renderSection();
@@ -1171,18 +1319,19 @@ function renderSection() {
   }
 
   /* Dokumanlar */
-  const docs = group.obj.docs || [];
-  if (docs.length > 0 || isAdmin) {
+  if (docItems.length > 0 || (isAdmin && !q)) {
     const dTitle = document.createElement("div");
     dTitle.className = "docs-title";
     dTitle.textContent = "Dokumanlar";
     main.appendChild(dTitle);
   }
 
-  if (docs.length > 0) {
+  if (docItems.length > 0) {
     const dList = document.createElement("div");
     dList.className = "doc-list";
-    docs.forEach(function (d, idx) {
+    docItems.forEach(function (entry) {
+      const d = entry.item;
+      const owner = entry.owner;
       const dk = docKey(d);
       const row = document.createElement("div");
       row.className = "doc-row" + (dk && watched[dk] ? " done" : "");
@@ -1205,7 +1354,15 @@ function renderSection() {
       icon.textContent = d.note || "DOC";
       a.appendChild(icon);
       const txt = document.createElement("div");
-      txt.textContent = d.title;
+      const tt = document.createElement("div");
+      tt.textContent = d.title;
+      txt.appendChild(tt);
+      if (entry.partName) {
+        const tag = document.createElement("div");
+        tag.className = "part-tag";
+        tag.textContent = entry.partName;
+        txt.appendChild(tag);
+      }
       a.appendChild(txt);
       row.appendChild(a);
 
@@ -1214,7 +1371,8 @@ function renderSection() {
       del.textContent = "Sil";
       del.addEventListener("click", function () {
         if (!confirm('"' + d.title + '" silinsin mi?')) return;
-        group.obj.docs.splice(idx, 1);
+        const i = owner.docs.indexOf(d);
+        if (i > -1) owner.docs.splice(i, 1);
         setDirty(true);
         renderSection();
       });
@@ -1222,11 +1380,18 @@ function renderSection() {
       dList.appendChild(row);
     });
     main.appendChild(dList);
+  } else if (q) {
+    const emptyD = document.createElement("div");
+    emptyD.className = "empty";
+    emptyD.style.marginTop = "10px";
+    emptyD.textContent = '"' + searchInput.value.trim() + '" ile eslesen dokuman yok.';
+    main.appendChild(emptyD);
   }
 
-  /* Dokuman ekleme formu (yonetici) */
+  /* Dokuman ekleme formu (yonetici, arama sirasinda gizli) */
   const dPanel = document.createElement("div");
   dPanel.className = "admin-panel";
+  if (q) dPanel.style.display = "none";
   dPanel.innerHTML =
     '<h3>Dokuman ekle — ' + sec.name + (groups.length > 1 ? ' / ' + group.name : '') + '</h3>' +
     '<div class="form-row">' +
@@ -1468,6 +1633,26 @@ document.getElementById("saveBtn").addEventListener("click", saveToGitHub);
 window.addEventListener("beforeunload", function (e) {
   if (dirty) { e.preventDefault(); e.returnValue = ""; }
 });
+
+/* ---------------- Tema ---------------- */
+const THEME_KEY = "oet_theme_v1";
+const ICON_MOON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>';
+const ICON_SUN = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>';
+
+function currentTheme() {
+  return document.documentElement.getAttribute("data-theme") === "dark" ? "dark" : "light";
+}
+function applyTheme(t) {
+  document.documentElement.setAttribute("data-theme", t);
+  const b = document.getElementById("themeToggle");
+  if (b) b.innerHTML = t === "dark" ? ICON_SUN : ICON_MOON;
+}
+document.getElementById("themeToggle").addEventListener("click", function () {
+  const next = currentTheme() === "dark" ? "light" : "dark";
+  try { localStorage.setItem(THEME_KEY, next); } catch (e) {}
+  applyTheme(next);
+});
+applyTheme(currentTheme());
 
 /* ---------------- Baslat ---------------- */
 (async function init() {
