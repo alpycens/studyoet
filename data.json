@@ -19,14 +19,8 @@
           "docs": []
         },
         {
-          "id": "b",
-          "name": "Part B",
-          "videos": [],
-          "docs": []
-        },
-        {
-          "id": "c",
-          "name": "Part C",
+          "id": "bc",
+          "name": "Part B-C",
           "videos": [],
           "docs": []
         }
@@ -122,16 +116,41 @@
           ]
         },
         {
-          "id": "b",
-          "name": "Part B",
+          "id": "bc",
+          "name": "Part B-C",
           "videos": [],
-          "docs": []
-        },
-        {
-          "id": "c",
-          "name": "Part C",
-          "videos": [],
-          "docs": []
+          "docs": [
+            {
+              "title": "Question paper 1",
+              "url": "https://drive.google.com/file/d/1pHcrr1zwUVmoZcYinGBT1jsP-e6PIbdz/view?usp=sharing",
+              "note": "DOC"
+            },
+            {
+              "title": "Answers 1",
+              "url": "https://drive.google.com/file/d/1_VOg8yH281VVDMkW-I73BD7xGsx8wVlE/view?usp=sharing",
+              "note": "DOC"
+            },
+            {
+              "title": "Question paper 2",
+              "url": "https://drive.google.com/file/d/1br2cnEdIPpR32h6XSJunN7IpK8RaNW-_/view?usp=sharing",
+              "note": "DOC"
+            },
+            {
+              "title": "Answers 2",
+              "url": "https://drive.google.com/file/d/1R4L7q6ubTCOSPboliF3UDJTgU3kUW7kb/view?usp=sharing",
+              "note": "DOC"
+            },
+            {
+              "title": "Question paper 3",
+              "url": "https://drive.google.com/file/d/1rOh9MSvOlYTKLKEWyK2B8XR82IA9pyXS/view?usp=sharing",
+              "note": "DOC"
+            },
+            {
+              "title": "Answers 3",
+              "url": "https://drive.google.com/file/d/1TXU5XwpBWtx8C0jsLfIIG7s-edTomR5w/view?usp=sharing",
+              "note": "DOC"
+            }
+          ]
         }
       ]
     },
