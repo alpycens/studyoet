@@ -403,7 +403,33 @@ body.admin .card-admin{display:block}
   color:var(--sec-color,var(--ink));
 }
 .doc-list{display:grid;gap:8px}
-.doc-row{display:flex;gap:8px;align-items:stretch}
+.doc-row{display:flex;gap:8px;align-items:center}
+.doc-check{
+  appearance:none;
+  cursor:pointer;
+  flex-shrink:0;
+  width:22px;height:22px;
+  border-radius:7px;
+  border:2px solid var(--line);
+  background:var(--paper);
+  position:relative;
+  transition:background .15s,border-color .15s;
+}
+.doc-check:focus-visible{outline:2px solid var(--ink);outline-offset:1px}
+.doc-row.done .doc-check{
+  background:var(--sec-color,#1E8A5A);
+  border-color:var(--sec-color,#1E8A5A);
+}
+.doc-row.done .doc-check::after{
+  content:"";
+  position:absolute;
+  inset:0;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 6L9 17l-5-5'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;
+  background-position:center;
+  background-size:13px;
+}
+.doc-row.done .doc-item{opacity:.65}
 .doc-item{
   flex:1;
   display:flex;
@@ -480,6 +506,27 @@ body.admin .admin-panel{display:block}
   color:var(--ink);
 }
 .form-row input:focus-visible{outline:2px solid var(--sec-color,var(--ink));outline-offset:0}
+.form-row input[type="file"]{
+  padding:7px 10px;
+  cursor:pointer;
+}
+.form-row input[type="file"]::file-selector-button{
+  font-family:var(--font-body);
+  font-weight:600;
+  font-size:12px;
+  padding:5px 10px;
+  margin-right:10px;
+  border:1px solid var(--line);
+  border-radius:7px;
+  background:var(--paper);
+  color:var(--ink);
+  cursor:pointer;
+}
+.form-hint{
+  font-size:12px;
+  color:var(--ink-soft);
+  margin-top:2px;
+}
 
 /* ---------- Modal ---------- */
 .modal-backdrop{
@@ -587,7 +634,7 @@ footer button:hover{color:var(--ink)}
     <div class="tagline">Occupational English Test hazirlik merkezi — video dersler ve kaynaklar</div>
     <div class="progress-wrap">
       <div class="progress-bar"><div class="progress-fill" id="totalProgressFill"></div></div>
-      <div class="progress-label" id="totalProgressLabel">0 / 0 video izlendi</div>
+      <div class="progress-label" id="totalProgressLabel">0 / 0 tamamlandi</div>
     </div>
   </div>
 </header>
@@ -743,6 +790,36 @@ function mediaKey(v) {
   return pid ? "pl_" + pid : null;
 }
 
+/* Dokuman icin takip anahtari */
+function docKey(d) {
+  return d && d.url ? "doc_" + d.url : null;
+}
+
+/* Bir grubun (bolum veya part) tum takip anahtarlari: videolar + dokumanlar */
+function groupKeys(obj) {
+  const keys = [];
+  (obj.videos || []).forEach(function (v) {
+    const k = mediaKey(v);
+    if (k) keys.push(k);
+  });
+  (obj.docs || []).forEach(function (d) {
+    const k = docKey(d);
+    if (k) keys.push(k);
+  });
+  return keys;
+}
+
+/* Bolumun tum anahtarlari (Genel + partlar) */
+function sectionKeys(sec) {
+  let keys = groupKeys(sec);
+  (sec.parts || []).forEach(function (p) { keys = keys.concat(groupKeys(p)); });
+  return keys;
+}
+
+function countDone(keys) {
+  return keys.filter(function (k) { return watched[k]; }).length;
+}
+
 async function sha256Hex(str) {
   const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(str));
   return Array.from(new Uint8Array(buf)).map(function (b) {
@@ -755,6 +832,45 @@ function utf8ToBase64(str) {
   let bin = "";
   bytes.forEach(function (b) { bin += String.fromCharCode(b); });
   return btoa(bin);
+}
+
+function fileToBase64(file) {
+  return new Promise(function (resolve, reject) {
+    const r = new FileReader();
+    r.onload = function () { resolve(String(r.result).split(",")[1]); };
+    r.onerror = function () { reject(new Error("Dosya okunamadi")); };
+    r.readAsDataURL(file);
+  });
+}
+
+/* Repoya dosya yukler/gunceller (Contents API) */
+async function uploadFileToGitHub(cfg, repoPath, base64Content, commitMsg) {
+  const base = "https://api.github.com/repos/" + cfg.owner + "/" + cfg.repo + "/contents/" + repoPath;
+  const headers = {
+    "Authorization": "Bearer " + cfg.token,
+    "Accept": "application/vnd.github+json",
+    "Content-Type": "application/json"
+  };
+  /* Ayni isimde dosya varsa sha gerekir */
+  let sha = null;
+  const getRes = await fetch(base + "?ref=" + encodeURIComponent(cfg.branch || "main"), { headers: headers });
+  if (getRes.ok) {
+    const info = await getRes.json();
+    sha = info.sha;
+  } else if (getRes.status !== 404) {
+    throw new Error("HTTP " + getRes.status);
+  }
+  const body = {
+    message: commitMsg,
+    content: base64Content,
+    branch: cfg.branch || "main"
+  };
+  if (sha) body.sha = sha;
+  const putRes = await fetch(base, { method: "PUT", headers: headers, body: JSON.stringify(body) });
+  if (!putRes.ok) {
+    const errTxt = await putRes.text();
+    throw new Error("HTTP " + putRes.status + " — " + errTxt.slice(0, 120));
+  }
 }
 
 function showToast(msg) {
@@ -808,16 +924,12 @@ function allVideos() {
 }
 
 function updateTotalProgress() {
-  const vids = allVideos();
-  const total = vids.length;
-  let done = 0;
-  vids.forEach(function (v) {
-    const key = mediaKey(v);
-    if (key && watched[key]) done++;
-  });
+  const keys = APP_DATA.sections.flatMap(function (s) { return sectionKeys(s); });
+  const total = keys.length;
+  const done = countDone(keys);
   const pct = total ? Math.round((done / total) * 100) : 0;
   document.getElementById("totalProgressFill").style.width = pct + "%";
-  document.getElementById("totalProgressLabel").textContent = done + " / " + total + " video izlendi";
+  document.getElementById("totalProgressLabel").textContent = done + " / " + total + " tamamlandi";
 }
 
 /* ---------------- Sekmeler ---------------- */
@@ -832,7 +944,7 @@ function renderTabs() {
     btn.setAttribute("aria-selected", sec.id === currentSection ? "true" : "false");
     const count = document.createElement("span");
     count.className = "count";
-    count.textContent = String(sectionAllVideos(sec).length);
+    count.textContent = String(sectionKeys(sec).length);
     btn.textContent = sec.name;
     btn.appendChild(count);
     btn.addEventListener("click", function () {
@@ -886,14 +998,10 @@ function renderSection() {
   const group = groups.find(function (g) { return g.id === activePartId; });
   const vids = group.obj.videos || [];
 
-  const secAll = sectionAllVideos(sec);
-  const secDone = secAll.filter(function (v) {
-    const key = mediaKey(v);
-    return key && watched[key];
-  }).length;
+  const secKeys = sectionKeys(sec);
   const prog = document.createElement("div");
   prog.className = "section-progress";
-  prog.textContent = secDone + " / " + secAll.length + " izlendi";
+  prog.textContent = countDone(secKeys) + " / " + secKeys.length + " tamamlandi";
   head.appendChild(prog);
   main.appendChild(head);
 
@@ -904,14 +1012,11 @@ function renderSection() {
     groups.forEach(function (g) {
       const b = document.createElement("button");
       b.className = "part-pill" + (g.id === activePartId ? " active" : "");
-      const done = (g.obj.videos || []).filter(function (v) {
-        const key = mediaKey(v);
-        return key && watched[key];
-      }).length;
+      const gKeys = groupKeys(g.obj);
       b.textContent = g.name;
       const c = document.createElement("span");
       c.className = "pill-count";
-      c.textContent = done + "/" + (g.obj.videos || []).length;
+      c.textContent = countDone(gKeys) + "/" + gKeys.length;
       b.appendChild(c);
       b.addEventListener("click", function () {
         currentPartBySection[sec.id] = g.id;
@@ -1062,8 +1167,18 @@ function renderSection() {
     const dList = document.createElement("div");
     dList.className = "doc-list";
     docs.forEach(function (d, idx) {
+      const dk = docKey(d);
       const row = document.createElement("div");
-      row.className = "doc-row";
+      row.className = "doc-row" + (dk && watched[dk] ? " done" : "");
+
+      const check = document.createElement("button");
+      check.className = "doc-check";
+      check.setAttribute("aria-label", "Yapildi olarak isaretle");
+      check.addEventListener("click", function () {
+        if (dk) toggleWatched(dk);
+      });
+      row.appendChild(check);
+
       const a = document.createElement("a");
       a.className = "doc-item";
       a.href = d.url;
@@ -1102,14 +1217,61 @@ function renderSection() {
       '<input type="text" id="newDocTitle" placeholder="Dokuman adi">' +
       '<input type="text" id="newDocUrl" placeholder="Link (PDF, Drive, docs/dosya.pdf ...)">' +
       '<input type="text" id="newDocNote" placeholder="Etiket (PDF, DOC...)" style="max-width:130px">' +
+    '</div>' +
+    '<div class="form-row">' +
+      '<input type="file" id="newDocFile" accept=".pdf,.doc,.docx,.txt">' +
       '<button class="btn primary" id="addDocBtn">Ekle</button>' +
-    '</div>';
+    '</div>' +
+    '<div class="form-hint">Bilgisayarindan PDF secersen dosya dogrudan repoya (docs/ klasorune) yuklenir. Link girersen sadece link eklenir.</div>';
   main.appendChild(dPanel);
-  dPanel.querySelector("#addDocBtn").addEventListener("click", function () {
+  dPanel.querySelector("#addDocBtn").addEventListener("click", async function () {
     const titleVal = dPanel.querySelector("#newDocTitle").value.trim();
     const urlVal = dPanel.querySelector("#newDocUrl").value.trim();
     const noteVal = dPanel.querySelector("#newDocNote").value.trim();
-    if (!urlVal) { showToast("Link gerekli."); return; }
+    const fileInput = dPanel.querySelector("#newDocFile");
+    const file = fileInput.files && fileInput.files[0];
+    const btn = dPanel.querySelector("#addDocBtn");
+
+    if (file) {
+      /* Dosyayi repoya yukle */
+      const cfg = loadGhCfg();
+      if (!cfg.owner || !cfg.repo || !cfg.token) {
+        showToast("Dosya yuklemek icin once GitHub Ayarlari'ni doldur.");
+        return;
+      }
+      if (file.size > 50 * 1024 * 1024) {
+        showToast("Dosya cok buyuk (en fazla 50 MB).");
+        return;
+      }
+      btn.disabled = true;
+      btn.textContent = "Yukleniyor...";
+      try {
+        const base64 = await fileToBase64(file);
+        const safeName = file.name
+          .replace(/[^A-Za-z0-9._-]+/g, "_")
+          .replace(/_+/g, "_");
+        const repoPath = "docs/" + safeName;
+        await uploadFileToGitHub(cfg, repoPath, base64, "Dokuman yuklendi: " + safeName);
+        const ext = (safeName.split(".").pop() || "").toUpperCase();
+        group.obj.docs = group.obj.docs || [];
+        group.obj.docs.push({
+          title: titleVal || file.name,
+          url: repoPath,
+          note: noteVal || (ext.length <= 4 ? ext : "DOC")
+        });
+        setDirty(true);
+        showToast("Dosya repoya yuklendi. Listede kalici olmasi icin GitHub'a Kaydet demeyi unutma.");
+        renderSection();
+      } catch (e) {
+        showToast("Yukleme hatasi: " + e.message);
+      } finally {
+        btn.disabled = false;
+        btn.textContent = "Ekle";
+      }
+      return;
+    }
+
+    if (!urlVal) { showToast("Link gir veya dosya sec."); return; }
     group.obj.docs = group.obj.docs || [];
     group.obj.docs.push({ title: titleVal || "Basliksiz dokuman", url: urlVal, note: noteVal || "DOC" });
     setDirty(true);
