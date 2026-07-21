@@ -1292,11 +1292,11 @@ function openPlayer(video) {
   const iframe = document.createElement("iframe");
   if (vid) {
     /* Tek video (playlist icindeyse liste devam eder) */
-    iframe.src = "https://www.youtube-nocookie.com/embed/" + vid + "?rel=0" +
+    iframe.src = "https://www.youtube.com/embed/" + vid + "?rel=0" +
       (pid ? "&list=" + pid : "");
   } else {
     /* Sadece playlist linki: liste bastan oynar */
-    iframe.src = "https://www.youtube-nocookie.com/embed/videoseries?list=" + pid + "&rel=0";
+    iframe.src = "https://www.youtube.com/embed/videoseries?list=" + pid + "&rel=0";
   }
   iframe.title = video.title;
   iframe.allow = "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share";
