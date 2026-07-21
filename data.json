@@ -1,0 +1,32 @@
+{
+  "sections": [
+    {
+      "id": "listening",
+      "name": "Listening",
+      "desc": "Part A, B ve C icin dinleme calismalari",
+      "videos": [],
+      "docs": []
+    },
+    {
+      "id": "reading",
+      "name": "Reading",
+      "desc": "Part A skimming/scanning, Part B-C okuma stratejileri",
+      "videos": [],
+      "docs": []
+    },
+    {
+      "id": "writing",
+      "name": "Writing",
+      "desc": "Referral letter yazimi ve degerlendirme kriterleri",
+      "videos": [],
+      "docs": []
+    },
+    {
+      "id": "speaking",
+      "name": "Speaking",
+      "desc": "Role-play kartlari ve konusma pratigi",
+      "videos": [],
+      "docs": []
+    }
+  ]
+}

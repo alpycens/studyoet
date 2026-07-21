@@ -21,7 +21,7 @@
   --c-reading:#1E8A5A;
   --c-writing:#7A4FBF;
   --c-speaking:#D66A2E;
-  --c-docs:#3E5560;
+  --danger:#C2402A;
   --font-display:"Bricolage Grotesque",system-ui,sans-serif;
   --font-body:"Public Sans",system-ui,sans-serif;
   --font-mono:"IBM Plex Mono",ui-monospace,monospace;
@@ -51,11 +51,7 @@ header{
   line-height:1.1;
 }
 .brand span{color:#7ED4C5}
-.tagline{
-  margin-top:6px;
-  font-size:14px;
-  color:#A7C4BF;
-}
+.tagline{margin-top:6px;font-size:14px;color:#A7C4BF}
 .progress-wrap{
   margin-top:16px;
   display:flex;
@@ -84,6 +80,36 @@ header{
   color:#A7C4BF;
   white-space:nowrap;
 }
+
+/* ---------- Admin bar ---------- */
+.admin-bar{
+  display:none;
+  background:#20343A;
+  color:#EAF4F2;
+  padding:10px 20px;
+}
+body.admin .admin-bar{display:block}
+.admin-bar-inner{
+  max-width:1080px;
+  margin:0 auto;
+  display:flex;
+  align-items:center;
+  gap:10px;
+  flex-wrap:wrap;
+  font-size:13px;
+}
+.admin-badge{
+  font-family:var(--font-mono);
+  font-size:11px;
+  letter-spacing:.08em;
+  background:#7ED4C5;
+  color:#0F2E33;
+  padding:3px 8px;
+  border-radius:6px;
+  font-weight:500;
+}
+.admin-bar .spacer{flex:1}
+.admin-status{font-family:var(--font-mono);font-size:12px;color:#A7C4BF}
 
 /* ---------- Tabs ---------- */
 nav{
@@ -203,6 +229,21 @@ main{max-width:1080px;margin:0 auto;padding:24px 20px 80px}
   color:#fff;
 }
 .btn.primary:hover{filter:brightness(1.08)}
+.btn.save{
+  background:#7ED4C5;
+  border-color:#7ED4C5;
+  color:#0F2E33;
+}
+.btn.save:hover{filter:brightness(1.05)}
+.btn.ghost-dark{
+  background:transparent;
+  border-color:#4A5C63;
+  color:#EAF4F2;
+}
+.btn.ghost-dark:hover{background:rgba(255,255,255,.08)}
+.btn.danger{color:var(--danger);border-color:var(--danger);background:var(--paper)}
+.btn.danger:hover{background:#FBEFEC}
+.btn.small{padding:5px 10px;font-size:12px;border-radius:7px}
 
 /* ---------- Video list ---------- */
 .video-grid{
@@ -298,6 +339,11 @@ main{max-width:1080px;margin:0 auto;padding:24px 20px 80px}
   background-position:center;
   background-size:13px;
 }
+.card-admin{
+  display:none;
+  padding:0 14px 12px;
+}
+body.admin .card-admin{display:block}
 
 /* ---------- Docs ---------- */
 .docs-title{
@@ -308,7 +354,9 @@ main{max-width:1080px;margin:0 auto;padding:24px 20px 80px}
   color:var(--sec-color,var(--ink));
 }
 .doc-list{display:grid;gap:8px}
+.doc-row{display:flex;gap:8px;align-items:stretch}
 .doc-item{
+  flex:1;
   display:flex;
   align-items:center;
   gap:12px;
@@ -335,7 +383,8 @@ main{max-width:1080px;margin:0 auto;padding:24px 20px 80px}
   font-size:10px;
   font-weight:500;
 }
-.doc-note{font-size:12px;color:var(--ink-soft);font-weight:400;margin-top:2px}
+.doc-del{display:none}
+body.admin .doc-del{display:inline-block}
 
 .empty{
   background:var(--paper);
@@ -347,12 +396,130 @@ main{max-width:1080px;margin:0 auto;padding:24px 20px 80px}
   font-size:14px;
 }
 
+/* ---------- Admin forms ---------- */
+.admin-panel{
+  display:none;
+  background:var(--paper);
+  border:1px solid var(--line);
+  border-left:4px solid var(--sec-color,var(--ink));
+  border-radius:var(--radius);
+  padding:16px;
+  margin:22px 0;
+}
+body.admin .admin-panel{display:block}
+.admin-panel h3{
+  font-family:var(--font-display);
+  font-size:15px;
+  font-weight:600;
+  margin-bottom:10px;
+}
+.form-row{
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+  margin-bottom:8px;
+}
+.form-row input{
+  flex:1;
+  min-width:160px;
+  font-family:var(--font-body);
+  font-size:13px;
+  padding:9px 12px;
+  border:1px solid var(--line);
+  border-radius:9px;
+  background:var(--bg);
+  color:var(--ink);
+}
+.form-row input:focus-visible{outline:2px solid var(--sec-color,var(--ink));outline-offset:0}
+
+/* ---------- Modal ---------- */
+.modal-backdrop{
+  display:none;
+  position:fixed;
+  inset:0;
+  background:rgba(15,33,38,.55);
+  z-index:100;
+  align-items:center;
+  justify-content:center;
+  padding:20px;
+}
+.modal-backdrop.open{display:flex}
+.modal{
+  background:var(--paper);
+  border-radius:var(--radius);
+  padding:22px;
+  width:100%;
+  max-width:400px;
+}
+.modal h2{
+  font-family:var(--font-display);
+  font-size:19px;
+  font-weight:800;
+  margin-bottom:6px;
+}
+.modal p{font-size:13px;color:var(--ink-soft);margin-bottom:14px}
+.modal input{
+  width:100%;
+  font-family:var(--font-mono);
+  font-size:15px;
+  padding:10px 12px;
+  border:1px solid var(--line);
+  border-radius:9px;
+  background:var(--bg);
+  color:var(--ink);
+  margin-bottom:12px;
+}
+.modal input:focus-visible{outline:2px solid var(--ink);outline-offset:0}
+.modal .modal-actions{display:flex;gap:8px;justify-content:flex-end}
+.modal .err{
+  color:var(--danger);
+  font-size:12px;
+  margin-bottom:10px;
+  display:none;
+}
+.modal .err.show{display:block}
+.modal label{
+  display:block;
+  font-size:12px;
+  font-weight:600;
+  margin-bottom:4px;
+  color:var(--ink-soft);
+}
+
 footer{
   text-align:center;
   padding:20px;
   font-size:12px;
   color:var(--ink-soft);
 }
+footer button{
+  appearance:none;
+  border:none;
+  background:none;
+  cursor:pointer;
+  font-family:var(--font-body);
+  font-size:12px;
+  color:var(--ink-soft);
+  text-decoration:underline;
+  text-underline-offset:2px;
+}
+footer button:hover{color:var(--ink)}
+
+.toast{
+  position:fixed;
+  bottom:20px;
+  left:50%;
+  transform:translateX(-50%) translateY(80px);
+  background:#0F2E33;
+  color:#EAF4F2;
+  font-size:13px;
+  padding:11px 18px;
+  border-radius:10px;
+  z-index:200;
+  transition:transform .25s ease;
+  max-width:90vw;
+}
+.toast.show{transform:translateX(-50%) translateY(0)}
 
 @media (prefers-reduced-motion:reduce){
   *{transition:none !important;animation:none !important}
@@ -376,71 +543,99 @@ footer{
   </div>
 </header>
 
+<div class="admin-bar">
+  <div class="admin-bar-inner">
+    <span class="admin-badge">YONETICI</span>
+    <span class="admin-status" id="adminStatus">Degisiklik yok</span>
+    <span class="spacer"></span>
+    <button class="btn small ghost-dark" id="settingsBtn">GitHub Ayarlari</button>
+    <button class="btn small save" id="saveBtn">GitHub'a Kaydet</button>
+    <button class="btn small ghost-dark" id="logoutBtn">Cikis</button>
+  </div>
+</div>
+
 <nav><div class="tabs" id="tabs"></div></nav>
 
 <main id="main"></main>
 
-<footer>OET Study Hub &middot; GitHub Pages</footer>
+<footer>
+  OET Study Hub &middot; GitHub Pages &middot;
+  <button id="adminLoginBtn">Yonetici</button>
+</footer>
+
+<!-- PIN modal -->
+<div class="modal-backdrop" id="pinModal">
+  <div class="modal">
+    <h2>Yonetici Girisi</h2>
+    <p>Icerik eklemek icin sifreyi gir.</p>
+    <div class="err" id="pinErr">Sifre yanlis.</div>
+    <input type="password" id="pinInput" inputmode="numeric" autocomplete="off" placeholder="Sifre">
+    <div class="modal-actions">
+      <button class="btn" id="pinCancelBtn">Vazgec</button>
+      <button class="btn primary" id="pinOkBtn" style="--sec-color:#0F2E33">Giris</button>
+    </div>
+  </div>
+</div>
+
+<!-- GitHub settings modal -->
+<div class="modal-backdrop" id="ghModal">
+  <div class="modal">
+    <h2>GitHub Ayarlari</h2>
+    <p>Degisiklikler repo icindeki data.json dosyasina kaydedilir. Token sadece bu tarayicida saklanir.</p>
+    <label for="ghOwner">Kullanici adi</label>
+    <input type="text" id="ghOwner" autocomplete="off" placeholder="alpycens">
+    <label for="ghRepo">Repo adi</label>
+    <input type="text" id="ghRepo" autocomplete="off" placeholder="oet">
+    <label for="ghBranch">Branch</label>
+    <input type="text" id="ghBranch" autocomplete="off" placeholder="main">
+    <label for="ghToken">Personal Access Token (repo yazma izni)</label>
+    <input type="password" id="ghToken" autocomplete="off" placeholder="ghp_ / github_pat_">
+    <div class="modal-actions">
+      <button class="btn" id="ghCancelBtn">Vazgec</button>
+      <button class="btn primary" id="ghSaveBtn" style="--sec-color:#0F2E33">Kaydet</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
 
 <script>
 "use strict";
 
 /* =====================================================================
-   VERI: Videolari ve dokumanlari buradan duzenle.
-   - url: YouTube linkini herhangi bir formatta yapistirabilirsin
-     (youtu.be/..., youtube.com/watch?v=..., embed linki vs.)
-   - docs: title + url (PDF, Google Drive linki, repo icindeki dosya vs.)
-     Repo icine koydugun dosya icin ornek: "docs/writing-guide.pdf"
+   OET Study Hub
+   - Icerik data.json dosyasindan yuklenir (ayni repo icinde).
+   - Yonetici modu: alt bilgideki "Yonetici" -> sifre -> ekleme/silme.
+   - Kaydet: GitHub Contents API ile data.json guncellenir (token gerekir).
    ===================================================================== */
-const APP_DATA = {
+
+const PIN_HASH = "b5d8a55fb763ff8e61c885c836cbfdb97f9699b2eadac509be2a9c38b62f8857";
+const DATA_FILE = "data.json";
+const STORAGE_KEY = "oet_watched_v1";
+const GH_CFG_KEY = "oet_gh_cfg_v1";
+
+const FALLBACK_DATA = {
   sections: [
-    {
-      id: "listening",
-      name: "Listening",
-      color: "var(--c-listening)",
-      desc: "Part A, B ve C icin dinleme calismalari",
-      videos: [
-        { title: "OET Listening Ornek Video 1", url: "https://www.youtube.com/watch?v=dQw4w9WgXcQ" },
-        { title: "OET Listening Ornek Video 2", url: "https://youtu.be/dQw4w9WgXcQ" }
-      ],
-      docs: [
-        { title: "Listening Cevap Kagidi (ornek)", url: "#", note: "PDF" }
-      ]
-    },
-    {
-      id: "reading",
-      name: "Reading",
-      color: "var(--c-reading)",
-      desc: "Part A skimming/scanning, Part B-C okuma stratejileri",
-      videos: [
-        { title: "OET Reading Ornek Video", url: "https://www.youtube.com/watch?v=dQw4w9WgXcQ" }
-      ],
-      docs: []
-    },
-    {
-      id: "writing",
-      name: "Writing",
-      color: "var(--c-writing)",
-      desc: "Referral letter yazimi ve degerlendirme kriterleri",
-      videos: [],
-      docs: [
-        { title: "Writing Criteria (ornek)", url: "#", note: "PDF" }
-      ]
-    },
-    {
-      id: "speaking",
-      name: "Speaking",
-      color: "var(--c-speaking)",
-      desc: "Role-play kartlari ve konusma pratigi",
-      videos: [],
-      docs: []
-    }
+    { id: "listening", name: "Listening", desc: "Part A, B ve C icin dinleme calismalari", videos: [], docs: [] },
+    { id: "reading",   name: "Reading",   desc: "Part A skimming/scanning, Part B-C okuma stratejileri", videos: [], docs: [] },
+    { id: "writing",   name: "Writing",   desc: "Referral letter yazimi ve degerlendirme kriterleri", videos: [], docs: [] },
+    { id: "speaking",  name: "Speaking",  desc: "Role-play kartlari ve konusma pratigi", videos: [], docs: [] }
   ]
 };
+const SECTION_COLORS = {
+  listening: "var(--c-listening)",
+  reading: "var(--c-reading)",
+  writing: "var(--c-writing)",
+  speaking: "var(--c-speaking)"
+};
 
-/* ============================ Uygulama ============================ */
-const STORAGE_KEY = "oet_watched_v1";
+let APP_DATA = null;
+let currentSection = "listening";
+let currentVideoId = null;
+let isAdmin = false;
+let dirty = false;
 
+/* ---------------- Yardimcilar ---------------- */
 function loadWatched() {
   try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || {}; }
   catch (e) { return {}; }
@@ -450,6 +645,15 @@ function saveWatched(map) {
   catch (e) { /* localStorage kapali olabilir */ }
 }
 let watched = loadWatched();
+
+function loadGhCfg() {
+  try { return JSON.parse(localStorage.getItem(GH_CFG_KEY)) || {}; }
+  catch (e) { return {}; }
+}
+function saveGhCfg(cfg) {
+  try { localStorage.setItem(GH_CFG_KEY, JSON.stringify(cfg)); }
+  catch (e) {}
+}
 
 function extractYouTubeId(url) {
   if (!url) return null;
@@ -466,10 +670,52 @@ function extractYouTubeId(url) {
   return null;
 }
 
-let currentSection = APP_DATA.sections[0].id;
+async function sha256Hex(str) {
+  const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(str));
+  return Array.from(new Uint8Array(buf)).map(function (b) {
+    return b.toString(16).padStart(2, "0");
+  }).join("");
+}
 
+function utf8ToBase64(str) {
+  const bytes = new TextEncoder().encode(str);
+  let bin = "";
+  bytes.forEach(function (b) { bin += String.fromCharCode(b); });
+  return btoa(bin);
+}
+
+function showToast(msg) {
+  const t = document.getElementById("toast");
+  t.textContent = msg;
+  t.classList.add("show");
+  clearTimeout(showToast._tm);
+  showToast._tm = setTimeout(function () { t.classList.remove("show"); }, 3200);
+}
+
+function setDirty(d) {
+  dirty = d;
+  document.getElementById("adminStatus").textContent =
+    d ? "Kaydedilmemis degisiklikler var" : "Degisiklik yok";
+}
+
+/* ---------------- Veri yukleme ---------------- */
+async function loadData() {
+  try {
+    const res = await fetch(DATA_FILE + "?cb=" + Date.now(), { cache: "no-store" });
+    if (!res.ok) throw new Error("HTTP " + res.status);
+    APP_DATA = await res.json();
+  } catch (e) {
+    APP_DATA = JSON.parse(JSON.stringify(FALLBACK_DATA));
+  }
+  if (!APP_DATA.sections || !APP_DATA.sections.length) {
+    APP_DATA = JSON.parse(JSON.stringify(FALLBACK_DATA));
+  }
+  currentSection = APP_DATA.sections[0].id;
+}
+
+/* ---------------- Ilerleme ---------------- */
 function allVideos() {
-  return APP_DATA.sections.flatMap(function (s) { return s.videos; });
+  return APP_DATA.sections.flatMap(function (s) { return s.videos || []; });
 }
 
 function updateTotalProgress() {
@@ -485,18 +731,19 @@ function updateTotalProgress() {
   document.getElementById("totalProgressLabel").textContent = done + " / " + total + " video izlendi";
 }
 
+/* ---------------- Sekmeler ---------------- */
 function renderTabs() {
   const tabsEl = document.getElementById("tabs");
   tabsEl.innerHTML = "";
   APP_DATA.sections.forEach(function (sec) {
     const btn = document.createElement("button");
     btn.className = "tab" + (sec.id === currentSection ? " active" : "");
-    btn.style.setProperty("--tab-color", sec.color);
+    btn.style.setProperty("--tab-color", SECTION_COLORS[sec.id] || "var(--ink)");
     btn.setAttribute("role", "tab");
     btn.setAttribute("aria-selected", sec.id === currentSection ? "true" : "false");
     const count = document.createElement("span");
     count.className = "count";
-    count.textContent = String(sec.videos.length);
+    count.textContent = String((sec.videos || []).length);
     btn.textContent = sec.name;
     btn.appendChild(count);
     btn.addEventListener("click", function () {
@@ -508,11 +755,13 @@ function renderTabs() {
   });
 }
 
+/* ---------------- Bolum ---------------- */
 function renderSection() {
   const sec = APP_DATA.sections.find(function (s) { return s.id === currentSection; });
+  if (!sec) return;
   const main = document.getElementById("main");
   main.innerHTML = "";
-  main.style.setProperty("--sec-color", sec.color);
+  main.style.setProperty("--sec-color", SECTION_COLORS[sec.id] || "var(--ink)");
 
   /* Baslik */
   const head = document.createElement("div");
@@ -528,13 +777,14 @@ function renderSection() {
   titleWrap.appendChild(sub);
   head.appendChild(titleWrap);
 
-  const secDone = sec.videos.filter(function (v) {
+  const vids = sec.videos || [];
+  const secDone = vids.filter(function (v) {
     const id = extractYouTubeId(v.url);
     return id && watched[id];
   }).length;
   const prog = document.createElement("div");
   prog.className = "section-progress";
-  prog.textContent = secDone + " / " + sec.videos.length + " izlendi";
+  prog.textContent = secDone + " / " + vids.length + " izlendi";
   head.appendChild(prog);
   main.appendChild(head);
 
@@ -553,16 +803,41 @@ function renderSection() {
     '</div>';
   main.appendChild(playerBox);
 
+  /* Video ekleme formu (yonetici) */
+  const vPanel = document.createElement("div");
+  vPanel.className = "admin-panel";
+  vPanel.innerHTML =
+    '<h3>Video ekle — ' + sec.name + '</h3>' +
+    '<div class="form-row">' +
+      '<input type="text" id="newVidTitle" placeholder="Video basligi">' +
+      '<input type="text" id="newVidUrl" placeholder="YouTube linki (youtu.be, watch?v=, ...)">' +
+      '<button class="btn primary" id="addVidBtn">Ekle</button>' +
+    '</div>';
+  main.appendChild(vPanel);
+  vPanel.querySelector("#addVidBtn").addEventListener("click", function () {
+    const titleVal = vPanel.querySelector("#newVidTitle").value.trim();
+    const urlVal = vPanel.querySelector("#newVidUrl").value.trim();
+    if (!urlVal) { showToast("YouTube linki gerekli."); return; }
+    if (!extractYouTubeId(urlVal)) { showToast("Link taninamadi, YouTube linki oldugundan emin ol."); return; }
+    sec.videos = sec.videos || [];
+    sec.videos.push({ title: titleVal || "Basliksiz video", url: urlVal });
+    setDirty(true);
+    renderTabs();
+    renderSection();
+  });
+
   /* Video listesi */
-  if (sec.videos.length === 0) {
+  if (vids.length === 0) {
     const empty = document.createElement("div");
     empty.className = "empty";
-    empty.textContent = "Bu bolume henuz video eklenmedi. index.html icindeki APP_DATA kismindan ekleyebilirsin.";
+    empty.textContent = isAdmin
+      ? "Bu bolum bos. Yukaridaki formdan video ekleyebilirsin."
+      : "Bu bolume henuz video eklenmedi.";
     main.appendChild(empty);
   } else {
     const grid = document.createElement("div");
     grid.className = "video-grid";
-    sec.videos.forEach(function (v) {
+    vids.forEach(function (v, idx) {
       const vid = extractYouTubeId(v.url);
       const card = document.createElement("div");
       card.className = "video-card" + (vid && watched[vid] ? " watched" : "");
@@ -602,6 +877,23 @@ function renderSection() {
       info.appendChild(toggle);
       card.appendChild(info);
 
+      /* Silme (yonetici) */
+      const adminRow = document.createElement("div");
+      adminRow.className = "card-admin";
+      const delBtn = document.createElement("button");
+      delBtn.className = "btn small danger";
+      delBtn.textContent = "Sil";
+      delBtn.addEventListener("click", function (e) {
+        e.stopPropagation();
+        if (!confirm('"' + v.title + '" silinsin mi?')) return;
+        sec.videos.splice(idx, 1);
+        setDirty(true);
+        renderTabs();
+        renderSection();
+      });
+      adminRow.appendChild(delBtn);
+      card.appendChild(adminRow);
+
       function openThis() { openPlayer(v, vid); }
       card.addEventListener("click", openThis);
       card.addEventListener("keydown", function (e) {
@@ -613,15 +905,20 @@ function renderSection() {
   }
 
   /* Dokumanlar */
-  if (sec.docs && sec.docs.length > 0) {
+  const docs = sec.docs || [];
+  if (docs.length > 0 || isAdmin) {
     const dTitle = document.createElement("div");
     dTitle.className = "docs-title";
     dTitle.textContent = "Dokumanlar";
     main.appendChild(dTitle);
+  }
 
+  if (docs.length > 0) {
     const dList = document.createElement("div");
     dList.className = "doc-list";
-    sec.docs.forEach(function (d) {
+    docs.forEach(function (d, idx) {
+      const row = document.createElement("div");
+      row.className = "doc-row";
       const a = document.createElement("a");
       a.className = "doc-item";
       a.href = d.url;
@@ -632,18 +929,50 @@ function renderSection() {
       icon.textContent = d.note || "DOC";
       a.appendChild(icon);
       const txt = document.createElement("div");
-      const tt = document.createElement("div");
-      tt.textContent = d.title;
-      txt.appendChild(tt);
+      txt.textContent = d.title;
       a.appendChild(txt);
-      dList.appendChild(a);
+      row.appendChild(a);
+
+      const del = document.createElement("button");
+      del.className = "btn small danger doc-del";
+      del.textContent = "Sil";
+      del.addEventListener("click", function () {
+        if (!confirm('"' + d.title + '" silinsin mi?')) return;
+        sec.docs.splice(idx, 1);
+        setDirty(true);
+        renderSection();
+      });
+      row.appendChild(del);
+      dList.appendChild(row);
     });
     main.appendChild(dList);
   }
+
+  /* Dokuman ekleme formu (yonetici) */
+  const dPanel = document.createElement("div");
+  dPanel.className = "admin-panel";
+  dPanel.innerHTML =
+    '<h3>Dokuman ekle — ' + sec.name + '</h3>' +
+    '<div class="form-row">' +
+      '<input type="text" id="newDocTitle" placeholder="Dokuman adi">' +
+      '<input type="text" id="newDocUrl" placeholder="Link (PDF, Drive, docs/dosya.pdf ...)">' +
+      '<input type="text" id="newDocNote" placeholder="Etiket (PDF, DOC...)" style="max-width:130px">' +
+      '<button class="btn primary" id="addDocBtn">Ekle</button>' +
+    '</div>';
+  main.appendChild(dPanel);
+  dPanel.querySelector("#addDocBtn").addEventListener("click", function () {
+    const titleVal = dPanel.querySelector("#newDocTitle").value.trim();
+    const urlVal = dPanel.querySelector("#newDocUrl").value.trim();
+    const noteVal = dPanel.querySelector("#newDocNote").value.trim();
+    if (!urlVal) { showToast("Link gerekli."); return; }
+    sec.docs = sec.docs || [];
+    sec.docs.push({ title: titleVal || "Basliksiz dokuman", url: urlVal, note: noteVal || "DOC" });
+    setDirty(true);
+    renderSection();
+  });
 }
 
-let currentVideoId = null;
-
+/* ---------------- Oynatici ---------------- */
 function openPlayer(video, vid) {
   if (!vid) return;
   currentVideoId = vid;
@@ -674,19 +1003,146 @@ function toggleWatched(vid) {
   if (watched[vid]) delete watched[vid];
   else watched[vid] = true;
   saveWatched(watched);
+  const playing = currentVideoId === vid;
   renderSection();
   updateTotalProgress();
-  /* Oynatici aciksa yeniden ac */
-  if (currentVideoId === vid) {
+  if (playing) {
     const sec = APP_DATA.sections.find(function (s) { return s.id === currentSection; });
-    const v = sec.videos.find(function (x) { return extractYouTubeId(x.url) === vid; });
+    const v = (sec.videos || []).find(function (x) { return extractYouTubeId(x.url) === vid; });
     if (v) openPlayer(v, vid);
   }
 }
 
-renderTabs();
-renderSection();
-updateTotalProgress();
+/* ---------------- Yonetici girisi ---------------- */
+function setAdmin(on) {
+  isAdmin = on;
+  document.body.classList.toggle("admin", on);
+  renderSection();
+}
+
+document.getElementById("adminLoginBtn").addEventListener("click", function () {
+  document.getElementById("pinErr").classList.remove("show");
+  document.getElementById("pinInput").value = "";
+  document.getElementById("pinModal").classList.add("open");
+  document.getElementById("pinInput").focus();
+});
+document.getElementById("pinCancelBtn").addEventListener("click", function () {
+  document.getElementById("pinModal").classList.remove("open");
+});
+async function tryPin() {
+  const val = document.getElementById("pinInput").value;
+  const hash = await sha256Hex(val);
+  if (hash === PIN_HASH) {
+    document.getElementById("pinModal").classList.remove("open");
+    setAdmin(true);
+    showToast("Yonetici modu acildi.");
+  } else {
+    document.getElementById("pinErr").classList.add("show");
+  }
+}
+document.getElementById("pinOkBtn").addEventListener("click", tryPin);
+document.getElementById("pinInput").addEventListener("keydown", function (e) {
+  if (e.key === "Enter") tryPin();
+});
+document.getElementById("logoutBtn").addEventListener("click", function () {
+  if (dirty && !confirm("Kaydedilmemis degisiklikler var, yine de cikilsin mi?")) return;
+  setDirty(false);
+  setAdmin(false);
+});
+
+/* ---------------- GitHub ayarlari ---------------- */
+document.getElementById("settingsBtn").addEventListener("click", function () {
+  const cfg = loadGhCfg();
+  document.getElementById("ghOwner").value = cfg.owner || "alpycens";
+  document.getElementById("ghRepo").value = cfg.repo || "";
+  document.getElementById("ghBranch").value = cfg.branch || "main";
+  document.getElementById("ghToken").value = cfg.token || "";
+  document.getElementById("ghModal").classList.add("open");
+});
+document.getElementById("ghCancelBtn").addEventListener("click", function () {
+  document.getElementById("ghModal").classList.remove("open");
+});
+document.getElementById("ghSaveBtn").addEventListener("click", function () {
+  saveGhCfg({
+    owner: document.getElementById("ghOwner").value.trim(),
+    repo: document.getElementById("ghRepo").value.trim(),
+    branch: document.getElementById("ghBranch").value.trim() || "main",
+    token: document.getElementById("ghToken").value.trim()
+  });
+  document.getElementById("ghModal").classList.remove("open");
+  showToast("GitHub ayarlari kaydedildi.");
+});
+
+/* ---------------- GitHub'a kaydetme ---------------- */
+async function saveToGitHub() {
+  const cfg = loadGhCfg();
+  if (!cfg.owner || !cfg.repo || !cfg.token) {
+    showToast("Once GitHub Ayarlari'ni doldur (kullanici, repo, token).");
+    return;
+  }
+  const btn = document.getElementById("saveBtn");
+  btn.disabled = true;
+  btn.textContent = "Kaydediliyor...";
+  const apiUrl = "https://api.github.com/repos/" + cfg.owner + "/" + cfg.repo +
+    "/contents/" + DATA_FILE + "?ref=" + encodeURIComponent(cfg.branch || "main");
+  try {
+    /* Mevcut dosyanin sha degerini al */
+    let sha = null;
+    const getRes = await fetch(apiUrl, {
+      headers: { "Authorization": "Bearer " + cfg.token, "Accept": "application/vnd.github+json" }
+    });
+    if (getRes.ok) {
+      const info = await getRes.json();
+      sha = info.sha;
+    } else if (getRes.status !== 404) {
+      throw new Error("Dosya okunamadi: HTTP " + getRes.status);
+    }
+
+    const body = {
+      message: "OET verisi guncellendi (site uzerinden)",
+      content: utf8ToBase64(JSON.stringify(APP_DATA, null, 2)),
+      branch: cfg.branch || "main"
+    };
+    if (sha) body.sha = sha;
+
+    const putRes = await fetch(
+      "https://api.github.com/repos/" + cfg.owner + "/" + cfg.repo + "/contents/" + DATA_FILE,
+      {
+        method: "PUT",
+        headers: {
+          "Authorization": "Bearer " + cfg.token,
+          "Accept": "application/vnd.github+json",
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(body)
+      }
+    );
+    if (!putRes.ok) {
+      const errTxt = await putRes.text();
+      throw new Error("HTTP " + putRes.status + " — " + errTxt.slice(0, 120));
+    }
+    setDirty(false);
+    showToast("Kaydedildi. Sitede gorunmesi 1-2 dakika surebilir (Pages yayini).");
+  } catch (e) {
+    showToast("Kaydetme hatasi: " + e.message);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = "GitHub'a Kaydet";
+  }
+}
+document.getElementById("saveBtn").addEventListener("click", saveToGitHub);
+
+window.addEventListener("beforeunload", function (e) {
+  if (dirty) { e.preventDefault(); e.returnValue = ""; }
+});
+
+/* ---------------- Baslat ---------------- */
+(async function init() {
+  await loadData();
+  renderTabs();
+  renderSection();
+  updateTotalProgress();
+})();
 </script>
 </body>
 </html>
