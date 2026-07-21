@@ -273,6 +273,21 @@ main{max-width:1080px;margin:0 auto;padding:24px 20px 80px}
   background:#E6ECEA;
 }
 .thumb img{width:100%;height:100%;object-fit:cover;display:block}
+.thumb.playlist{
+  background:linear-gradient(135deg,#20343A,#0F2E33);
+}
+.pl-badge{
+  position:absolute;
+  bottom:8px;right:8px;
+  z-index:2;
+  font-family:var(--font-mono);
+  font-size:10px;
+  letter-spacing:.08em;
+  background:rgba(15,46,51,.85);
+  color:#7ED4C5;
+  padding:3px 8px;
+  border-radius:6px;
+}
 .thumb .play{
   position:absolute;
   inset:0;
@@ -670,6 +685,22 @@ function extractYouTubeId(url) {
   return null;
 }
 
+function extractPlaylistId(url) {
+  if (!url) return null;
+  const m = url.match(/[?&]list=([A-Za-z0-9_-]{10,})/);
+  if (m) return m[1];
+  const m2 = url.match(/playlist\?list=([A-Za-z0-9_-]{10,})/);
+  return m2 ? m2[1] : null;
+}
+
+/* Video icin YouTube ID, playlist icin "pl_" onekli liste ID dondurur */
+function mediaKey(v) {
+  const vid = extractYouTubeId(v.url);
+  if (vid) return vid;
+  const pid = extractPlaylistId(v.url);
+  return pid ? "pl_" + pid : null;
+}
+
 async function sha256Hex(str) {
   const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(str));
   return Array.from(new Uint8Array(buf)).map(function (b) {
@@ -723,8 +754,8 @@ function updateTotalProgress() {
   const total = vids.length;
   let done = 0;
   vids.forEach(function (v) {
-    const id = extractYouTubeId(v.url);
-    if (id && watched[id]) done++;
+    const key = mediaKey(v);
+    if (key && watched[key]) done++;
   });
   const pct = total ? Math.round((done / total) * 100) : 0;
   document.getElementById("totalProgressFill").style.width = pct + "%";
@@ -779,8 +810,8 @@ function renderSection() {
 
   const vids = sec.videos || [];
   const secDone = vids.filter(function (v) {
-    const id = extractYouTubeId(v.url);
-    return id && watched[id];
+    const key = mediaKey(v);
+    return key && watched[key];
   }).length;
   const prog = document.createElement("div");
   prog.className = "section-progress";
@@ -810,7 +841,7 @@ function renderSection() {
     '<h3>Video ekle — ' + sec.name + '</h3>' +
     '<div class="form-row">' +
       '<input type="text" id="newVidTitle" placeholder="Video basligi">' +
-      '<input type="text" id="newVidUrl" placeholder="YouTube linki (youtu.be, watch?v=, ...)">' +
+      '<input type="text" id="newVidUrl" placeholder="YouTube video veya playlist linki">' +
       '<button class="btn primary" id="addVidBtn">Ekle</button>' +
     '</div>';
   main.appendChild(vPanel);
@@ -818,7 +849,10 @@ function renderSection() {
     const titleVal = vPanel.querySelector("#newVidTitle").value.trim();
     const urlVal = vPanel.querySelector("#newVidUrl").value.trim();
     if (!urlVal) { showToast("YouTube linki gerekli."); return; }
-    if (!extractYouTubeId(urlVal)) { showToast("Link taninamadi, YouTube linki oldugundan emin ol."); return; }
+    if (!extractYouTubeId(urlVal) && !extractPlaylistId(urlVal)) {
+      showToast("Link taninamadi. Video veya playlist linki oldugundan emin ol.");
+      return;
+    }
     sec.videos = sec.videos || [];
     sec.videos.push({ title: titleVal || "Basliksiz video", url: urlVal });
     setDirty(true);
@@ -839,20 +873,28 @@ function renderSection() {
     grid.className = "video-grid";
     vids.forEach(function (v, idx) {
       const vid = extractYouTubeId(v.url);
+      const pid = extractPlaylistId(v.url);
+      const key = mediaKey(v);
       const card = document.createElement("div");
-      card.className = "video-card" + (vid && watched[vid] ? " watched" : "");
+      card.className = "video-card" + (key && watched[key] ? " watched" : "");
       card.setAttribute("tabindex", "0");
       card.setAttribute("role", "button");
-      card.setAttribute("aria-label", v.title + " videosunu oynat");
+      card.setAttribute("aria-label", v.title + (pid && !vid ? " oynatma listesini ac" : " videosunu oynat"));
 
       const thumb = document.createElement("div");
-      thumb.className = "thumb";
+      thumb.className = "thumb" + (pid && !vid ? " playlist" : "");
       if (vid) {
         const img = document.createElement("img");
         img.loading = "lazy";
         img.alt = "";
         img.src = "https://i.ytimg.com/vi/" + vid + "/hqdefault.jpg";
         thumb.appendChild(img);
+      }
+      if (pid) {
+        const plBadge = document.createElement("div");
+        plBadge.className = "pl-badge";
+        plBadge.textContent = "PLAYLIST";
+        thumb.appendChild(plBadge);
       }
       const play = document.createElement("div");
       play.className = "play";
@@ -871,8 +913,8 @@ function renderSection() {
       toggle.setAttribute("aria-label", "Izlendi olarak isaretle");
       toggle.addEventListener("click", function (e) {
         e.stopPropagation();
-        if (!vid) return;
-        toggleWatched(vid);
+        if (!key) return;
+        toggleWatched(key);
       });
       info.appendChild(toggle);
       card.appendChild(info);
@@ -894,7 +936,7 @@ function renderSection() {
       adminRow.appendChild(delBtn);
       card.appendChild(adminRow);
 
-      function openThis() { openPlayer(v, vid); }
+      function openThis() { openPlayer(v); }
       card.addEventListener("click", openThis);
       card.addEventListener("keydown", function (e) {
         if (e.key === "Enter" || e.key === " ") { e.preventDefault(); openThis(); }
@@ -973,14 +1015,24 @@ function renderSection() {
 }
 
 /* ---------------- Oynatici ---------------- */
-function openPlayer(video, vid) {
-  if (!vid) return;
-  currentVideoId = vid;
+function openPlayer(video) {
+  const vid = extractYouTubeId(video.url);
+  const pid = extractPlaylistId(video.url);
+  const key = mediaKey(video);
+  if (!key) return;
+  currentVideoId = key;
   const box = document.getElementById("playerBox");
   const ratio = document.getElementById("playerRatio");
   ratio.innerHTML = "";
   const iframe = document.createElement("iframe");
-  iframe.src = "https://www.youtube-nocookie.com/embed/" + vid + "?rel=0";
+  if (vid) {
+    /* Tek video (playlist icindeyse liste devam eder) */
+    iframe.src = "https://www.youtube-nocookie.com/embed/" + vid + "?rel=0" +
+      (pid ? "&list=" + pid : "");
+  } else {
+    /* Sadece playlist linki: liste bastan oynar */
+    iframe.src = "https://www.youtube-nocookie.com/embed/videoseries?list=" + pid + "&rel=0";
+  }
   iframe.title = video.title;
   iframe.allow = "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share";
   iframe.allowFullscreen = true;
@@ -989,7 +1041,7 @@ function openPlayer(video, vid) {
   box.classList.add("open");
 
   document.getElementById("markWatchedBtn").onclick = function () {
-    toggleWatched(vid);
+    toggleWatched(key);
   };
   document.getElementById("closePlayerBtn").onclick = function () {
     box.classList.remove("open");
@@ -999,17 +1051,17 @@ function openPlayer(video, vid) {
   box.scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
-function toggleWatched(vid) {
-  if (watched[vid]) delete watched[vid];
-  else watched[vid] = true;
+function toggleWatched(key) {
+  if (watched[key]) delete watched[key];
+  else watched[key] = true;
   saveWatched(watched);
-  const playing = currentVideoId === vid;
+  const playing = currentVideoId === key;
   renderSection();
   updateTotalProgress();
   if (playing) {
     const sec = APP_DATA.sections.find(function (s) { return s.id === currentSection; });
-    const v = (sec.videos || []).find(function (x) { return extractYouTubeId(x.url) === vid; });
-    if (v) openPlayer(v, vid);
+    const v = (sec.videos || []).find(function (x) { return mediaKey(x) === key; });
+    if (v) openPlayer(v);
   }
 }
 
