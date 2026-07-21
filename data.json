@@ -5,14 +5,65 @@
       "name": "Listening",
       "desc": "Part A, B ve C icin dinleme calismalari",
       "videos": [],
-      "docs": []
+      "docs": [],
+      "parts": [
+        {
+          "id": "a",
+          "name": "Part A",
+          "videos": [],
+          "docs": []
+        },
+        {
+          "id": "b",
+          "name": "Part B",
+          "videos": [],
+          "docs": []
+        },
+        {
+          "id": "c",
+          "name": "Part C",
+          "videos": [],
+          "docs": []
+        }
+      ]
     },
     {
       "id": "reading",
       "name": "Reading",
       "desc": "Part A skimming/scanning, Part B-C okuma stratejileri",
       "videos": [],
-      "docs": []
+      "docs": [],
+      "parts": [
+        {
+          "id": "a",
+          "name": "Part A",
+          "videos": [],
+          "docs": [
+            {
+              "title": "Text booklet 1",
+              "url": "https://drive.google.com/file/d/1gZFSVVXmyh9YDU_hyd4UQ8W6DBZJ4fIO/view?usp=sharing",
+              "note": "DOC"
+            },
+            {
+              "title": "Question paper 1",
+              "url": "https://drive.google.com/file/d/1SXMa9uF84-vS7Qs3phDGJ_PxOPedQFKF/view?usp=sharing",
+              "note": "DOC"
+            }
+          ]
+        },
+        {
+          "id": "b",
+          "name": "Part B",
+          "videos": [],
+          "docs": []
+        },
+        {
+          "id": "c",
+          "name": "Part C",
+          "videos": [],
+          "docs": []
+        }
+      ]
     },
     {
       "id": "writing",
