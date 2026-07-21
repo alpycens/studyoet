@@ -723,8 +723,7 @@ const FALLBACK_DATA = {
 const PARTED_SECTIONS = ["listening", "reading"];
 const DEFAULT_PARTS = [
   { id: "a", name: "Part A" },
-  { id: "b", name: "Part B" },
-  { id: "c", name: "Part C" }
+  { id: "bc", name: "Part B-C" }
 ];
 const SECTION_COLORS = {
   listening: "var(--c-listening)",
@@ -907,6 +906,22 @@ async function loadData() {
       s.parts = DEFAULT_PARTS.map(function (p) {
         return { id: p.id, name: p.name, videos: [], docs: [] };
       });
+    }
+  });
+  /* Ayri B ve C partlari varsa tek "Part B-C" olarak birlestir */
+  APP_DATA.sections.forEach(function (s) {
+    if (!s.parts) return;
+    const b = s.parts.find(function (p) { return p.id === "b"; });
+    const c = s.parts.find(function (p) { return p.id === "c"; });
+    if (b || c) {
+      const bc = {
+        id: "bc",
+        name: "Part B-C",
+        videos: ((b && b.videos) || []).concat((c && c.videos) || []),
+        docs: ((b && b.docs) || []).concat((c && c.docs) || [])
+      };
+      s.parts = s.parts.filter(function (p) { return p.id !== "b" && p.id !== "c"; });
+      s.parts.push(bc);
     }
   });
   currentSection = APP_DATA.sections[0].id;
